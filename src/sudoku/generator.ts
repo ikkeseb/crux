@@ -9,12 +9,19 @@ import {
 } from './solver'
 import type { SudokuGrid, SudokuPuzzle } from './types'
 
-/** Roughly how many givens to leave for each requested difficulty. */
+/**
+ * Roughly how many givens to leave for each requested difficulty. These bias the
+ * dig toward the technique tier each band needs; the honest grade is decided by
+ * the technique solver and resampling honours the request (see `generateSudoku`).
+ * Calibrated against the seed distribution: easy/medium are singles-only boards
+ * split by density; hard needs locked candidates / subsets; expert needs fish /
+ * wings or stalls the ladder.
+ */
 const TARGET_GIVENS: Record<Difficulty, number> = {
   easy: 44,
-  medium: 34,
-  hard: 27,
-  expert: 23,
+  medium: 32,
+  hard: 24,
+  expert: 22,
 }
 
 const RANK: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2, expert: 3 }
@@ -24,7 +31,7 @@ export interface SudokuGenOptions {
   difficulty?: Difficulty
   /** Override the target number of givens. */
   targetGivens?: number
-  /** Resample attempts before returning the closest graded match (default 30). */
+  /** Resample attempts before returning the closest graded match (default 60). */
   maxAttempts?: number
 }
 
@@ -78,7 +85,7 @@ export function generateSudoku(
 ): SudokuPuzzle {
   const requested = opts.difficulty
   const target = opts.targetGivens ?? TARGET_GIVENS[requested ?? 'medium']
-  const maxAttempts = opts.maxAttempts ?? 30
+  const maxAttempts = opts.maxAttempts ?? 60
   const seedStr = String(seed)
 
   let best: SudokuPuzzle | null = null

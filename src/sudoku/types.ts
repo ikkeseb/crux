@@ -1,4 +1,5 @@
 import type { Difficulty } from '../lib/types'
+import type { Technique } from './techniques'
 
 /** A 9×9 grid. 0 means empty; 1–9 are placed digits. */
 export type SudokuGrid = number[][]
@@ -26,7 +27,10 @@ export interface SudokuGrade {
   difficulty: Difficulty
   givens: number
   nodes: number
+  /** Solvable by naked + hidden singles alone. */
   logicSolvable: boolean
+  /** Hardest human technique the board forces, or null if singles never ran. */
+  hardest: Technique | null
 }
 
 export interface SudokuPuzzle {

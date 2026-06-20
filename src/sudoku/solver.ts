@@ -1,5 +1,6 @@
 import type { Difficulty } from '../lib/types'
 import { Dlx } from './dlx'
+import { solveByTechniques, TECHNIQUE_TIER } from './techniques'
 import type {
   SudokuGrade,
   SudokuGrid,
@@ -271,36 +272,65 @@ export function countGivens(grid: SudokuGrid): number {
 }
 
 /**
- * Grade by how much work the oracle needs. Puzzles a perfect player can crack
- * with singles alone are easy/medium; those that force the solver into real
- * search are hard/expert, discriminated by DLX node count beyond the minimum.
+ * Grade by the hardest *human technique* the board forces — the metric a player
+ * actually feels, rather than how much the machine's brute-force flailed. Each
+ * difficulty maps to a distinct rung of the technique ladder, mirroring how
+ * sudoku is graded in the wild:
+ *
+ *   easy   — singles only (naked / hidden)
+ *   medium — also needs locked candidates (pointing / claiming)
+ *   hard   — also needs naked / hidden subsets (pairs / triples)
+ *   expert — needs X-wing / XY-wing, or reasoning beyond the ladder
+ *
+ * DLX is consulted only to record search effort (`nodes`), which discriminates
+ * among the toughest boards (those the ladder can't finish) so `score` stays
+ * monotone even past the ladder's ceiling.
  */
 export function gradeSudoku(grid: SudokuGrid): SudokuGrade {
   const givens = countGivens(grid)
   const empties = 81 - givens
-  const logic = logicSolve(grid)
-  const search = countSolutions(grid, 2)
-  const nodes = search.nodes
+  const tech = solveByTechniques(grid)
+  const nodes = countSolutions(grid, 1).nodes
 
-  // Two qualitative regimes: solvable by singles alone (easy/medium, split by how
-  // empty the board is) vs. requiring real DLX search (hard/expert, split by how
-  // much search beyond the minimum forced fill).
-  let difficulty: Difficulty
-  let score: number
-  if (logic.solved) {
-    difficulty = empties < 43 ? 'easy' : 'medium'
-    score = empties + logic.hiddenSingles * 0.3
-  } else {
-    const extra = Math.max(0, nodes - empties)
-    difficulty = extra < 60 ? 'hard' : 'expert'
-    score = empties + 40 + extra * 0.5
+  let hardestTier = 0
+  let advancedSteps = 0
+  for (const step of tech.steps) {
+    const t = TECHNIQUE_TIER[step.technique]
+    if (t > hardestTier) hardestTier = t
+    if (t >= 2) advancedSteps++
   }
+
+  // Reachable, human-recognizable bands (calibrated against the seed distribution):
+  //   easy   — singles only, roomy board
+  //   medium — singles only, sparse board (more scanning, no special tricks)
+  //   hard   — needs locked candidates and/or subsets (pointing / pairs / triples)
+  //   expert — needs X-wing / XY-wing, or stalls the ladder entirely (fish / chains)
+  let difficulty: Difficulty
+  let tierWeight: number
+  if (!tech.solved) {
+    difficulty = 'expert'
+    tierWeight = 5
+  } else if (hardestTier >= 4) {
+    difficulty = 'expert'
+    tierWeight = 4
+  } else if (hardestTier >= 2) {
+    difficulty = 'hard'
+    tierWeight = 3
+  } else {
+    difficulty = givens >= 38 ? 'easy' : 'medium'
+    tierWeight = givens >= 38 ? 1 : 2
+  }
+
+  // Tier dominates; empties and advanced-step count break ties within a tier, and
+  // unsolved boards lean on DLX nodes so the very hardest still spread out.
+  const score = tierWeight * 100 + empties + advancedSteps * 2 + (tech.solved ? 0 : nodes * 0.05)
 
   return {
     score: Math.round(score * 100) / 100,
     difficulty,
     givens,
     nodes,
-    logicSolvable: logic.solved,
+    logicSolvable: tech.solved && hardestTier <= 1,
+    hardest: tech.hardest,
   }
 }
