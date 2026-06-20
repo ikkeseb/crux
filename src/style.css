@@ -1,0 +1,18 @@
+/* Placeholder styles; the full design system lands with the player UI. */
+:root {
+  color-scheme: dark light;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #0e1116;
+  color: #e6e9ef;
+}
+.boot {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
