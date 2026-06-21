@@ -4,6 +4,7 @@ import { dateKey } from '../lib/daily'
 import { getStore } from '../lib/storage'
 import { computeStreak } from '../lib/streak'
 import { clear, el } from './dom'
+import { openRules } from './rules'
 import type { PuzzleStatus, PuzzleView } from './types'
 import { NonogramView } from './nonogram-view'
 import { SudokuView } from './sudoku-view'
@@ -169,11 +170,21 @@ export class App {
       el('span', { class: 'key', text: 'N' }),
     )
 
+    const helpBtn = el('button', {
+      class: 'btn ghost icon',
+      type: 'button',
+      'aria-label': 'How to play',
+      title: 'How to play',
+      text: '?',
+      onclick: () => openRules(this.kind),
+    })
+
     const toolset = el(
       'div',
       { class: 'toolset' },
       el('label', { class: 'field' }, 'Level', this.difficultySelect),
       this.dailyBtn,
+      helpBtn,
       newBtn,
     )
 
@@ -394,6 +405,8 @@ export class App {
     document.addEventListener('keydown', (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.target instanceof HTMLSelectElement) return
+      // The how-to-play modal owns the keyboard while it is open.
+      if (document.body.classList.contains('modal-open')) return
       switch (e.key) {
         case 'u':
           this.act('undo')
@@ -406,6 +419,9 @@ export class App {
           break
         case 'n':
           this.newGame(true)
+          break
+        case '?':
+          openRules(this.kind)
           break
         default:
           return

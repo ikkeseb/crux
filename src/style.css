@@ -365,6 +365,145 @@ select.select {
   to { transform: scale(1); opacity: 1; }
 }
 
+/* icon button (the "?" help trigger) */
+.btn.icon {
+  width: 36px;
+  padding: 9px 0;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ---- how-to-play modal ---- */
+body.modal-open {
+  overflow: hidden;
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 9, 13, 0.66);
+  backdrop-filter: blur(3px);
+  animation: fade 0.18s ease;
+}
+.modal {
+  width: min(540px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: pop 0.22s ease;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.modal-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  flex: 1 1 auto;
+}
+.modal-close {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink-dim);
+  border-radius: var(--radius-sm);
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close:hover {
+  border-color: var(--muted);
+  color: var(--ink);
+}
+.modal-body {
+  padding: 16px 20px;
+}
+.modal-body h3 {
+  margin: 18px 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.rule-objective {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.rule-para {
+  margin: 8px 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+.rule-controls {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.rule-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.rule-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 116px;
+}
+.rule-keys kbd {
+  font: 600 11px var(--mono);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--ink-dim);
+}
+.rule-sep {
+  color: var(--muted);
+  font-size: 11px;
+  padding: 0 1px;
+}
+.rule-touch {
+  margin: 14px 0 2px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  border-top: 1px solid var(--line-soft);
+  padding-top: 12px;
+}
+.rule-touch strong {
+  color: var(--ink-dim);
+}
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 20px 18px;
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ============================================================ *
  * Board: shared bits
  * ============================================================ */
