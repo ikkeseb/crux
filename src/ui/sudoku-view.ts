@@ -36,6 +36,8 @@ export class SudokuView implements PuzzleView {
   private pencil: number[][] = []
   private cellEls: HTMLDivElement[][] = []
   private board!: HTMLDivElement
+  private pencilBtn!: HTMLButtonElement
+  private pencilMode = false
   private cursor = { x: 0, y: 0 }
   private undoStack: Snapshot[] = []
   private solved = false
@@ -82,9 +84,45 @@ export class SudokuView implements PuzzleView {
     }
     board.addEventListener('pointerdown', (e) => this.onPointerDown(e))
     board.addEventListener('keydown', (e) => this.onKeyDown(e))
-    this.container.append(board)
+    this.container.append(board, this.buildKeypad())
     this.board = board
     this.repaint()
+  }
+
+  /** On-screen number pad for touch input (hidden on fine-pointer devices via CSS). */
+  private buildKeypad(): HTMLElement {
+    const pad = el('div', { class: 'keypad', role: 'group', 'aria-label': 'Number pad' })
+    for (let d = 1; d <= 9; d++) {
+      pad.append(
+        el('button', { class: 'keypad-btn', type: 'button', text: String(d), onclick: () => this.padDigit(d) }),
+      )
+    }
+    pad.append(
+      el('button', { class: 'keypad-btn erase', type: 'button', 'aria-label': 'Erase', text: '⌫', onclick: () => this.padDigit(0) }),
+    )
+    this.pencilBtn = el('button', {
+      class: this.pencilMode ? 'keypad-btn pencil on' : 'keypad-btn pencil',
+      type: 'button',
+      'aria-pressed': String(this.pencilMode),
+      'aria-label': 'Pencil mode',
+      text: '✎',
+      onclick: () => this.togglePencilMode(),
+    }) as HTMLButtonElement
+    pad.append(this.pencilBtn)
+    return pad
+  }
+
+  private padDigit(d: number): void {
+    if (this.solved) return
+    if (d === 0) this.setValue(0)
+    else if (this.pencilMode) this.togglePencil(d)
+    else this.setValue(d)
+  }
+
+  private togglePencilMode(): void {
+    this.pencilMode = !this.pencilMode
+    this.pencilBtn.setAttribute('aria-pressed', String(this.pencilMode))
+    this.pencilBtn.classList.toggle('on', this.pencilMode)
   }
 
   private onPointerDown(e: PointerEvent): void {

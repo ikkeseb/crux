@@ -33,6 +33,10 @@ export class NonogramView implements PuzzleView {
   private painting: number | null = null
   private lastPaint: { x: number; y: number } | null = null
   private hintTimer = 0
+  /** Touch paint mode (mouse uses left=fill / right=cross regardless). */
+  private mode: 'fill' | 'cross' = 'fill'
+  private fillBtn!: HTMLButtonElement
+  private crossBtn!: HTMLButtonElement
 
   constructor(ctx: ViewContext) {
     this.container = ctx.container
@@ -104,13 +108,40 @@ export class NonogramView implements PuzzleView {
 
     board.addEventListener('contextmenu', (e) => e.preventDefault())
     board.addEventListener('pointerdown', (e) => this.onPointerDown(e))
-    board.addEventListener('pointerover', (e) => this.onPointerOver(e))
+    board.addEventListener('pointermove', (e) => this.onPointerMove(e))
     board.addEventListener('keydown', (e) => this.onKeyDown(e))
 
-    this.container.append(board)
+    this.container.append(board, this.buildModeToggle())
     this.board = board
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) this.paintCell(x, y)
     this.refreshClues()
+  }
+
+  /** Fill / Cross toggle for touch input (hidden on fine-pointer devices via CSS). */
+  private buildModeToggle(): HTMLElement {
+    this.fillBtn = el('button', {
+      class: this.mode === 'fill' ? 'mode-btn on' : 'mode-btn',
+      type: 'button',
+      'aria-pressed': String(this.mode === 'fill'),
+      onclick: () => this.setMode('fill'),
+    }) as HTMLButtonElement
+    this.fillBtn.append(el('span', { class: 'swatch fill' }), 'Fill')
+    this.crossBtn = el('button', {
+      class: this.mode === 'cross' ? 'mode-btn on' : 'mode-btn',
+      type: 'button',
+      'aria-pressed': String(this.mode === 'cross'),
+      onclick: () => this.setMode('cross'),
+    }) as HTMLButtonElement
+    this.crossBtn.append(el('span', { class: 'swatch cross' }), 'Cross')
+    return el('div', { class: 'painttoggle', role: 'group', 'aria-label': 'Paint mode' }, this.fillBtn, this.crossBtn)
+  }
+
+  private setMode(mode: 'fill' | 'cross'): void {
+    this.mode = mode
+    this.fillBtn.classList.toggle('on', mode === 'fill')
+    this.fillBtn.setAttribute('aria-pressed', String(mode === 'fill'))
+    this.crossBtn.classList.toggle('on', mode === 'cross')
+    this.crossBtn.setAttribute('aria-pressed', String(mode === 'cross'))
   }
 
   private cellFrom(target: EventTarget | null): { x: number; y: number } | null {
@@ -128,18 +159,23 @@ export class NonogramView implements PuzzleView {
     this.snapshot()
     this.cursor = pos
     const cur = this.marks[pos.y]![pos.x]!
-    if (e.button === 2) {
-      this.painting = cur === CROSS ? UNKNOWN : CROSS
-    } else {
-      this.painting = cur === FILLED ? UNKNOWN : FILLED
-    }
+    // Mouse: left fills, right crosses. Touch/pen: the Fill/Cross toggle decides.
+    const wantCross = e.button === 2 || (e.pointerType !== 'mouse' && this.mode === 'cross')
+    this.painting = wantCross
+      ? cur === CROSS
+        ? UNKNOWN
+        : CROSS
+      : cur === FILLED
+        ? UNKNOWN
+        : FILLED
     this.apply(pos.x, pos.y, this.painting)
     this.lastPaint = pos
   }
 
-  private onPointerOver(e: PointerEvent): void {
+  private onPointerMove(e: PointerEvent): void {
     if (this.painting === null) return
-    const pos = this.cellFrom(e.target)
+    // elementFromPoint works for touch drags, where pointerover does not fire.
+    const pos = this.cellFrom(document.elementFromPoint(e.clientX, e.clientY))
     if (!pos) return
     // Interpolate so a fast drag doesn't leave gaps between sampled cells.
     this.paintLine(this.lastPaint ?? pos, pos, this.painting)

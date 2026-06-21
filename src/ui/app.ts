@@ -5,6 +5,7 @@ import { getStore } from '../lib/storage'
 import { computeStreak } from '../lib/streak'
 import { clear, el } from './dom'
 import { openRules } from './rules'
+import { confettiBurst } from './celebrate'
 import type { PuzzleStatus, PuzzleView } from './types'
 import { NonogramView } from './nonogram-view'
 import { SudokuView } from './sudoku-view'
@@ -346,6 +347,7 @@ export class App {
     this.bannerLabel.textContent = res.best ? '✓ New best!' : '✓ Solved!'
     this.bannerTime.textContent = this.formatTime(timeMs)
     this.banner.classList.add('show')
+    confettiBurst(this.boardContainer)
   }
 
   private updateBest(): void {

@@ -38,6 +38,7 @@ export class SokobanView implements PuzzleView {
   private moves = 0
   private solved = false
   private hintTimer = 0
+  private touchStart: { x: number; y: number; tile: number } | null = null
 
   constructor(ctx: ViewContext) {
     this.container = ctx.container
@@ -80,6 +81,7 @@ export class SokobanView implements PuzzleView {
     }
     board.addEventListener('keydown', (e) => this.onKeyDown(e))
     board.addEventListener('pointerdown', (e) => this.onPointerDown(e))
+    board.addEventListener('pointerup', (e) => this.onPointerUp(e))
     this.container.append(board)
     this.board = board
     this.repaint()
@@ -104,10 +106,41 @@ export class SokobanView implements PuzzleView {
   }
 
   private onPointerDown(e: PointerEvent): void {
-    if (this.solved || !(e.target instanceof HTMLElement)) return
-    const tile = e.target.closest('.tile')
-    if (!(tile instanceof HTMLElement)) return
-    const i = Number(tile.dataset.i)
+    if (this.solved) return
+    this.touchStart = { x: e.clientX, y: e.clientY, tile: this.tileIndexFrom(e.target) }
+    // Capture so the matching pointerup lands here even if the finger drifts off-board.
+    try {
+      this.board.setPointerCapture(e.pointerId)
+    } catch {
+      // capture is best-effort
+    }
+  }
+
+  private onPointerUp(e: PointerEvent): void {
+    const start = this.touchStart
+    this.touchStart = null
+    if (this.solved || !start) return
+    const dx = e.clientX - start.x
+    const dy = e.clientY - start.y
+    const SWIPE = 24
+    if (Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE) {
+      // Swipe: move in the dominant axis. DIRS: 0=up 1=down 2=left 3=right.
+      this.board.focus()
+      this.doMove(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 3 : 2) : dy > 0 ? 1 : 0)
+    } else if (start.tile >= 0) {
+      // Tap: step onto the pressed tile if it neighbours the player.
+      this.board.focus()
+      this.stepToTile(start.tile)
+    }
+  }
+
+  private tileIndexFrom(target: EventTarget | null): number {
+    if (!(target instanceof HTMLElement)) return -1
+    const tile = target.closest('.tile')
+    return tile instanceof HTMLElement ? Number(tile.dataset.i) : -1
+  }
+
+  private stepToTile(i: number): void {
     const W = this.level.width
     const pr = Math.floor(this.state.player / W)
     const pc = this.state.player % W
@@ -116,7 +149,6 @@ export class SokobanView implements PuzzleView {
     for (let di = 0; di < DIRS.length; di++) {
       const d = DIRS[di]!
       if (pr + d.dr === tr && pc + d.dc === tc) {
-        this.board.focus()
         this.doMove(di)
         return
       }

@@ -54,8 +54,8 @@ const RULES: Record<PuzzleKind, Rules> = {
       'Every level is solvable by construction. Undo freely — or take a solver hint if you get tangled.',
     ],
     controls: [
-      { keys: ['↑', '↓', '←', '→'], sep: ['or'], desc: '' },
-      { keys: ['W', 'A', 'S', 'D'], desc: 'walk / push' },
+      { keys: ['↑', '↓', '←', '→'], desc: 'walk — into a box to push it' },
+      { keys: ['W', 'A', 'S', 'D'], desc: 'same, on WASD' },
       { keys: ['Click'], desc: 'step onto an adjacent tile' },
     ],
     touch: 'Swipe on the board to move, or tap a tile next to you to step.',

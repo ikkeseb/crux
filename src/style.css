@@ -228,6 +228,28 @@ select.select {
   place-items: center;
   box-shadow: var(--shadow);
   overflow: auto;
+  position: relative;
+}
+
+/* win confetti (added on solve, removed after ~2.4s; skipped at reduced-motion) */
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 9px;
+  height: 14px;
+  opacity: 0;
+  animation: confetti-fall var(--dur, 1.5s) var(--delay, 0s) ease-in forwards;
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate(0, -16px) rotate(0); }
+  100% { opacity: 0; transform: translate(var(--drift, 0), 460px) rotate(var(--rot, 360deg)); }
 }
 
 .sidebar {
@@ -706,6 +728,96 @@ body.modal-open {
   animation: hintpulse 0.9s ease;
 }
 
+/* ============================================================ *
+ * Touch controls — shown only on coarse pointers
+ * ============================================================ */
+.keypad,
+.painttoggle {
+  display: none;
+}
+@media (pointer: coarse) {
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-top: 16px;
+    width: 100%;
+    max-width: 360px;
+    justify-self: stretch;
+  }
+  .painttoggle {
+    display: inline-flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  /* let touch drags paint / move instead of scrolling the page */
+  .nono,
+  .sokoban {
+    touch-action: none;
+  }
+}
+
+.keypad-btn {
+  appearance: none;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 0;
+  font: 600 18px var(--mono);
+  cursor: pointer;
+}
+.keypad-btn:active {
+  transform: translateY(1px);
+}
+.keypad-btn.erase {
+  font-size: 16px;
+  color: var(--ink-dim);
+}
+.keypad-btn.pencil {
+  grid-column: 1 / -1;
+  font: 600 14px var(--sans);
+  color: var(--ink-dim);
+}
+.keypad-btn.pencil.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.mode-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--panel-2);
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 15px;
+  font: 600 13px var(--sans);
+  cursor: pointer;
+}
+.mode-btn.on {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+.mode-btn .swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+}
+.mode-btn .swatch.fill {
+  background: var(--ink);
+}
+.mode-btn .swatch.cross {
+  background:
+    linear-gradient(45deg, transparent 44%, var(--muted) 46%, var(--muted) 54%, transparent 56%),
+    linear-gradient(-45deg, transparent 44%, var(--muted) 46%, var(--muted) 54%, transparent 56%);
+}
+
 /* ---- responsive ---- */
 @media (max-width: 860px) {
   .stage {
@@ -713,6 +825,13 @@ body.modal-open {
   }
   .sidebar {
     order: 2;
+  }
+}
+
+/* Sudoku has fixed 46px cells (414px) — shrink them so the 9×9 fits a phone. */
+@media (max-width: 480px) {
+  .sudoku {
+    --cell: clamp(30px, 9.2vw, 46px);
   }
 }
 
