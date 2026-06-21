@@ -10,11 +10,13 @@ import type { PuzzleStatus, PuzzleView } from './types'
 import { NonogramView } from './nonogram-view'
 import { SudokuView } from './sudoku-view'
 import { SokobanView } from './sokoban-view'
+import { SlitherlinkView } from './slitherlink-view'
 
 const KIND_LABEL: Record<PuzzleKind, string> = {
   nonogram: 'Nonogram',
   sudoku: 'Sudoku',
   sokoban: 'Sokoban',
+  slitherlink: 'Slitherlink',
 }
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -50,11 +52,17 @@ function legendFor(kind: PuzzleKind): HTMLElement {
       line(kbd('⇧', '1–9'), 'pencil mark · '),
       line(kbd('0', 'Del'), 'clear'),
     )
-  } else {
+  } else if (kind === 'sokoban') {
     wrap.append(
       line(kbd('↑', '↓', '←', '→'), 'or'),
       line(kbd('W', 'A', 'S', 'D'), 'push boxes'),
       el('div', { text: 'Click a tile next to you to step.' }),
+    )
+  } else {
+    wrap.append(
+      line(kbd('↑', '↓', '←', '→'), 'draw the loop'),
+      line(kbd('⇧', '+ arrow'), 'cross an edge'),
+      el('div', { text: 'Click an edge to add a line; right-click to cross it.' }),
     )
   }
   wrap.append(
@@ -276,7 +284,14 @@ export class App {
 
     this.view?.destroy()
     const ctx = { container: this.boardContainer, onStatus: (s: PuzzleStatus) => this.onStatus(s) }
-    this.view = kind === 'nonogram' ? new NonogramView(ctx) : kind === 'sudoku' ? new SudokuView(ctx) : new SokobanView(ctx)
+    this.view =
+      kind === 'nonogram'
+        ? new NonogramView(ctx)
+        : kind === 'sudoku'
+          ? new SudokuView(ctx)
+          : kind === 'sokoban'
+            ? new SokobanView(ctx)
+            : new SlitherlinkView(ctx)
 
     // refresh legend
     clear(this.legendSlot)

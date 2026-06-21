@@ -1,7 +1,7 @@
 # crux
 
-Client-side logic-puzzle game — **nonogram, sudoku, sokoban**. TypeScript (strict) +
-Vite, pnpm, static, no backend, **zero runtime dependencies**.
+Client-side logic-puzzle game — **nonogram, sudoku, sokoban, slitherlink**. TypeScript
+(strict) + Vite, pnpm, static, no backend, **zero runtime dependencies**.
 
 ## Core principle: the solver is the oracle
 
@@ -12,6 +12,9 @@ lean on the solver to guarantee quality, never the other way around:
 - **sudoku** — DLX (dancing links) exact cover, counts solutions to 2 → **unique**
 - **sokoban** — A\* over `(boxes, normalized-player)` + simple-deadlock pruning; levels
   built by reverse-pull from a solved state → **solvable by construction**
+- **slitherlink** — edge constraint-propagation (clue + dot rules) + backtracking, counts
+  solutions to 2 → **unique**; loops built as the boundary of a random simply-connected
+  region (holes filled, diagonal pinches repaired so the boundary is one simple loop)
 
 All generation is **seeded and deterministic** (`src/lib/rng.ts`, mulberry32 + xmur3).
 Difficulty is **graded by solver search effort**; generators resample to honour a
@@ -32,9 +35,9 @@ pnpm screens     # Playwright → /screens (port 4319, never reuses a foreign se
 ## Layout
 
 ```
-src/lib/                      seeded RNG, daily-seed, shared types
-src/{nonogram,sudoku,sokoban} types · solver · generator (+ *.test.ts)
-src/ui/                       dom helpers · app shell · one view per puzzle type
+src/lib/                                 seeded RNG, daily-seed, shared types
+src/{nonogram,sudoku,sokoban,slitherlink} types · solver · generator (+ *.test.ts)
+src/ui/                                  dom helpers · app shell · one view per puzzle type
 tests/e2e/                    Playwright screenshot + interaction checks
 screens/                      generated screenshots (deliverable)
 ```

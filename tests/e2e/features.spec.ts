@@ -67,6 +67,19 @@ test('records a best time and shows confetti on solving', async ({ page }) => {
   await expect(page.locator('.confetti-piece').first()).toBeAttached()
 })
 
+test('slitherlink solves via hints, records a best time, and shows confetti', async ({ page }) => {
+  await page.goto('/')
+  await openTab(page, 'Slitherlink')
+  await pickDifficulty(page, 'Easy')
+  await expect(page.locator('.board.slither')).toBeVisible()
+  await page.locator('.board.slither').focus()
+  const banner = page.locator('.banner.show')
+  for (let i = 0; i < 200 && !(await banner.isVisible()); i++) await page.keyboard.press('h')
+  await expect(banner).toBeVisible()
+  await expect(statValue(page, 'Best')).not.toHaveText('—')
+  await expect(page.locator('.confetti-piece').first()).toBeAttached()
+})
+
 test('opens and closes the how-to-play modal', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'How to play' }).click()
@@ -95,6 +108,15 @@ test.describe('touch', () => {
   test('nonogram fill/cross toggle is available', async ({ page }) => {
     await page.goto('/')
     await openTab(page, 'Nonogram')
+    await expect(page.locator('.painttoggle')).toBeVisible()
+    await page.getByRole('button', { name: 'Cross' }).click()
+    await expect(page.getByRole('button', { name: 'Cross' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  test('slitherlink line/cross toggle is available', async ({ page }) => {
+    await page.goto('/')
+    await openTab(page, 'Slitherlink')
+    await expect(page.locator('.board.slither')).toBeVisible()
     await expect(page.locator('.painttoggle')).toBeVisible()
     await page.getByRole('button', { name: 'Cross' }).click()
     await expect(page.getByRole('button', { name: 'Cross' })).toHaveAttribute('aria-pressed', 'true')

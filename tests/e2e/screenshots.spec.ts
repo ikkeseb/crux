@@ -56,6 +56,16 @@ test('renders and screenshots every puzzle type', async ({ page }) => {
   await page.waitForTimeout(200)
   await page.screenshot({ path: 'screens/sokoban-solved.png' })
 
+  // Slitherlink: render, then draw part of the loop via hints for a lively shot.
+  await openTab(page, 'Slitherlink')
+  await pickDifficulty(page, 'Easy')
+  await expect(page.locator('.board.slither')).toBeVisible()
+  await expect(page.locator('.slither .edge').first()).toBeVisible()
+  await page.locator('.board.slither').focus()
+  for (let i = 0; i < 8; i++) await page.keyboard.press('h')
+  await page.waitForTimeout(150)
+  await page.screenshot({ path: 'screens/slitherlink.png' })
+
   // Daily mode badge.
   await openTab(page, 'Nonogram')
   await pickDifficulty(page, 'Easy')

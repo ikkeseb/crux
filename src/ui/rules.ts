@@ -60,6 +60,22 @@ const RULES: Record<PuzzleKind, Rules> = {
     ],
     touch: 'Swipe on the board to move, or tap a tile next to you to step.',
   },
+  slitherlink: {
+    title: 'Slitherlink',
+    objective:
+      'Draw a single closed loop along the grid edges. Each number says how many of its four surrounding edges the loop uses.',
+    how: [
+      'A 3 means three of that cell’s four sides are part of the loop; a 0 means none of them are. Blank cells can take any number of edges.',
+      'The loop never branches or crosses itself: every dot it reaches has exactly two edges, and the whole loop is one continuous ring.',
+      'Mark edges you have ruled out with a cross to keep your reasoning straight. Every puzzle has one solution reachable by logic.',
+    ],
+    controls: [
+      { keys: ['↑', '↓', '←', '→'], desc: 'draw the loop from the cursor dot' },
+      { keys: ['⇧', '↑↓←→'], sep: ['+'], desc: 'cross out an edge' },
+      { keys: ['Click'], desc: 'toggle an edge — right-click to cross' },
+    ],
+    touch: 'Tap an edge to add a line; switch the Line / Cross toggle to mark edges you have ruled out.',
+  },
 }
 
 const GLOBAL_CONTROLS: { keys: string[]; desc: string }[] = [
