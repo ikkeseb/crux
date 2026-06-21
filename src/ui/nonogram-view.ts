@@ -43,6 +43,7 @@ export class NonogramView implements PuzzleView {
     this.onStatus = ctx.onStatus
     // Registered once for the view's lifetime (removed in destroy), not per render.
     window.addEventListener('pointerup', this.endPaint)
+    window.addEventListener('pointercancel', this.endPaint)
   }
 
   load(seed: string, difficulty: Difficulty): void {
@@ -70,7 +71,11 @@ export class NonogramView implements PuzzleView {
       role: 'grid',
       'aria-label': 'Nonogram board',
     })
-    board.style.setProperty('--cell', `${cellPx(Math.max(width, height))}px`)
+    // Cells are inline-styled, so a media query can't reach them — bake the
+    // viewport cap into the value: min() keeps the design size on desktop and
+    // shrinks cells so the grid fits a phone (~6rem reserves padding + clue gutter).
+    const cap = cellPx(Math.max(width, height))
+    board.style.setProperty('--cell', `min(${cap}px, calc((100vw - 6rem) / ${width}))`)
     board.style.gridTemplateColumns = `auto repeat(${width}, var(--cell))`
     board.style.gridTemplateRows = `auto repeat(${height}, var(--cell))`
 
@@ -209,8 +214,8 @@ export class NonogramView implements PuzzleView {
     if (this.painting !== null) {
       this.painting = null
       this.lastPaint = null
-      this.emitStatus()
       this.checkWin()
+      this.emitStatus()
     }
   }
 
@@ -235,8 +240,8 @@ export class NonogramView implements PuzzleView {
         this.snapshot()
         const cur = this.marks[this.cursor.y]![this.cursor.x]!
         this.apply(this.cursor.x, this.cursor.y, cur === FILLED ? UNKNOWN : FILLED)
-        this.emitStatus()
         this.checkWin()
+        this.emitStatus()
         break
       }
       case 'x':
@@ -244,8 +249,8 @@ export class NonogramView implements PuzzleView {
         this.snapshot()
         const cur = this.marks[this.cursor.y]![this.cursor.x]!
         this.apply(this.cursor.x, this.cursor.y, cur === CROSS ? UNKNOWN : CROSS)
-        this.emitStatus()
         this.checkWin()
+        this.emitStatus()
         break
       }
       default:
@@ -344,6 +349,10 @@ export class NonogramView implements PuzzleView {
   }
 
   restore(data: unknown): boolean {
+    // A saved board is keyed by (kind, seed, difficulty), and generation is
+    // deterministic, so the regenerated puzzle's clues always match the snapshot;
+    // dimensions are the only thing that can drift (an incompatible generator change
+    // would be shipped behind a bumped storage namespace).
     if (!data || typeof data !== 'object') return false
     const marks = (data as { marks?: unknown }).marks
     const { width, height } = this.puzzle
@@ -436,6 +445,7 @@ export class NonogramView implements PuzzleView {
 
   destroy(): void {
     window.removeEventListener('pointerup', this.endPaint)
+    window.removeEventListener('pointercancel', this.endPaint)
     window.clearTimeout(this.hintTimer)
     clear(this.container)
   }

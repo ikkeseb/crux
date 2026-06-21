@@ -174,8 +174,8 @@ export class SudokuView implements PuzzleView {
     this.values[y]![x] = d
     this.pencil[y]![x] = 0
     this.repaint()
-    this.emitStatus()
     this.checkWin()
+    this.emitStatus()
   }
 
   private togglePencil(d: number): void {
@@ -290,7 +290,8 @@ export class SudokuView implements PuzzleView {
       for (let x = 0; x < 9; x++)
         if (this.given[y]![x] && values[y]![x] !== this.puzzle.grid[y]![x]) return false
     this.values = values.map((r) => r.slice())
-    this.pencil = d.pencil.map((r) => r.slice())
+    // Keep only candidate bits 1..9; drop any stray bits from a tampered save.
+    this.pencil = d.pencil.map((r) => r.map((v) => v & 0x3fe))
     this.undoStack = []
     this.solved = false
     this.board.classList.remove('won')

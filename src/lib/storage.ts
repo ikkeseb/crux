@@ -5,6 +5,7 @@
  * storage all degrade to "no data" rather than crashing the game.
  */
 import type { Difficulty, PuzzleKind } from './types'
+import { DIFFICULTIES, PUZZLE_KINDS } from './types'
 
 /** The slice of the Web Storage API we depend on (so tests can inject a fake). */
 export interface KeyValueStore {
@@ -133,14 +134,16 @@ export class CruxStore {
     const s = this.read<Partial<Session>>(SESSION_KEY)
     if (
       !s ||
-      typeof s.kind !== 'string' ||
       typeof s.seed !== 'string' ||
-      typeof s.difficulty !== 'string' ||
-      typeof s.daily !== 'boolean'
+      typeof s.daily !== 'boolean' ||
+      // Reject unknown kinds/difficulties: a stale or forged value would otherwise
+      // resume into a missing view or an undefined preset and break every reload.
+      !PUZZLE_KINDS.includes(s.kind as PuzzleKind) ||
+      !DIFFICULTIES.includes(s.difficulty as Difficulty)
     ) {
       return null
     }
-    return { kind: s.kind, seed: s.seed, difficulty: s.difficulty, daily: s.daily }
+    return { kind: s.kind as PuzzleKind, seed: s.seed, difficulty: s.difficulty as Difficulty, daily: s.daily }
   }
 }
 

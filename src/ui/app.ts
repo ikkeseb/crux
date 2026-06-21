@@ -99,6 +99,9 @@ export class App {
   private elapsedMs = 0
   private running = false
   private solvedShown = false
+  /** True during newGame() setup, so load()/restore() status emits don't persist
+   *  or record wins against the previous puzzle's timer. */
+  private loading = false
 
   constructor(root: HTMLElement) {
     this.root = root
@@ -112,19 +115,43 @@ export class App {
     // Resume where the player left off, if anything is on record.
     const session = this.store.loadSession()
     if (session) {
-      this.kind = session.kind
-      this.difficulty = session.difficulty
-      this.daily = session.daily
-      this.seed = session.seed
-      this.difficultySelect.value = this.difficulty
-      this.dailyBtn.setAttribute('aria-pressed', String(this.daily))
-      this.selectKind(session.kind, false)
-      this.newGame(false)
+      try {
+        this.kind = session.kind
+        this.difficulty = session.difficulty
+        this.daily = session.daily
+        this.seed = session.seed
+        this.difficultySelect.value = this.difficulty
+        this.dailyBtn.setAttribute('aria-pressed', String(this.daily))
+        this.selectKind(session.kind, false)
+        this.newGame(false)
+      } catch {
+        // A bad resume must never brick the app on reload — fall back to a fresh game.
+        this.startFresh()
+      }
     } else {
-      this.selectKind('nonogram', false)
-      this.newGame(true)
+      this.startFresh()
     }
     this.bindGlobalKeys()
+
+    // Flush the current board + elapsed time when leaving/hiding the tab, so the
+    // timer resumes accurately on reload rather than only up to the last move.
+    const flush = (): void => {
+      if (this.view && !this.loading && !this.solvedShown) this.saveProgress()
+    }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush()
+    })
+  }
+
+  private startFresh(): void {
+    this.kind = 'nonogram'
+    this.difficulty = 'easy'
+    this.daily = false
+    this.difficultySelect.value = this.difficulty
+    this.dailyBtn.setAttribute('aria-pressed', 'false')
+    this.selectKind('nonogram', false)
+    this.newGame(true)
   }
 
   private buildTopbar(): HTMLElement {
@@ -271,13 +298,17 @@ export class App {
 
     // Read any saved board BEFORE load(), whose status emit would overwrite it.
     const saved = this.store.loadBoard(this.kind, this.seed, this.difficulty)
-    this.view.load(this.seed, this.difficulty)
 
+    // Guard the load/restore emits: their saveProgress/recordWin would run against
+    // the previous puzzle's timer (or zero) and corrupt the persisted record.
+    this.loading = true
+    this.view.load(this.seed, this.difficulty)
     let resumeMs = 0
     if (saved && typeof saved === 'object') {
       const wrap = saved as { s?: unknown; t?: unknown }
       if (this.view.restore(wrap.s) && typeof wrap.t === 'number' && wrap.t >= 0) resumeMs = wrap.t
     }
+    this.loading = false
 
     this.store.saveSession({
       kind: this.kind,
@@ -290,6 +321,8 @@ export class App {
     this.updateStreak()
     this.banner.classList.remove('show')
     this.startTimer(resumeMs)
+    // Persist once now, with the board and the correct (resumed) elapsed time.
+    this.saveProgress()
     this.view.focus()
   }
 
@@ -310,15 +343,19 @@ export class App {
     this.diffBadge.textContent = DIFFICULTY_LABEL[s.difficulty]
     this.diffBadge.className = `badge ${s.difficulty}`
     this.noteEl.textContent = s.note ?? ''
+    // Programmatic emit during newGame setup: display only, no persistence/win.
+    if (this.loading) return
     if (s.solved && !this.solvedShown) {
       this.solvedShown = true
       this.stopTimer()
-      this.recordWin(s.difficulty)
+      this.recordWin()
     } else if (!s.solved && this.solvedShown) {
-      // Undo took the board back out of a solved state: clear the win and resume timing.
+      // Undo took the board back out of a solved state: clear the win, resume timing,
+      // and re-persist the board (it was cleared from storage when the win recorded).
       this.solvedShown = false
       this.banner.classList.remove('show')
       this.resumeTimer()
+      this.saveProgress()
     } else if (!s.solved) {
       this.saveProgress()
     }
@@ -332,11 +369,13 @@ export class App {
     })
   }
 
-  private recordWin(difficulty: Difficulty): void {
+  private recordWin(): void {
     const timeMs = this.elapsedMs
+    // Bucket by the chosen level (this.difficulty), matching updateBest and the
+    // board key — not the puzzle's honest grade, which can differ after resampling.
     const res = this.store.recordCompletion({
       kind: this.kind,
-      difficulty,
+      difficulty: this.difficulty,
       timeMs,
       daily: this.daily,
       date: this.daily ? this.seed : undefined,

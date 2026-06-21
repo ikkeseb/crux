@@ -44,6 +44,18 @@ test('resumes the puzzle and restores the board after a reload', async ({ page }
   await expect(statValue(page, 'Progress')).toHaveText(progressBefore ?? '')
 })
 
+test('resumes the timer (not reset to 0) after a reload', async ({ page }) => {
+  await page.goto('/')
+  await openTab(page, 'Sudoku')
+  await page.locator('.sudoku .scell:not(.given)').first().click()
+  await page.keyboard.press('5')
+  // Let the timer tick past a second, then reload — pagehide flushes elapsed time.
+  await expect(statValue(page, 'Time')).not.toHaveText('0:00')
+  await page.reload()
+  await expect(page.locator('.board.sudoku')).toBeVisible()
+  await expect(statValue(page, 'Time')).not.toHaveText('0:00')
+})
+
 test('records a best time and shows confetti on solving', async ({ page }) => {
   await page.goto('/')
   await openTab(page, 'Sokoban')

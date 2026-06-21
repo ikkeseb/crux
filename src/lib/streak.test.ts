@@ -45,4 +45,13 @@ describe('computeStreak', () => {
     const dates = ['2025-12-30', '2025-12-31', '2026-01-01']
     expect(computeStreak(dates, '2026-01-01')).toEqual({ current: 3, longest: 3 })
   })
+
+  test('ignores malformed dates instead of poisoning the streak with NaN', () => {
+    const dates = ['2026-06-20', 'garbage', '', '2026-06-21', 'not-a-date']
+    expect(computeStreak(dates, '2026-06-21')).toEqual({ current: 2, longest: 2 })
+  })
+
+  test('all-malformed input is a zero streak', () => {
+    expect(computeStreak(['nope', 'x', '2026/06/21'], '2026-06-21')).toEqual({ current: 0, longest: 0 })
+  })
 })

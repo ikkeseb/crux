@@ -70,7 +70,10 @@ export class SokobanView implements PuzzleView {
       role: 'grid',
       'aria-label': 'Sokoban board',
     })
-    board.style.setProperty('--cell', `${cellPx(Math.max(width, height))}px`)
+    // Inline cells can't be hit by a media query — bake the viewport cap in so
+    // larger boards shrink to fit a phone instead of overflowing under touch-action:none.
+    const cap = cellPx(Math.max(width, height))
+    board.style.setProperty('--cell', `min(${cap}px, calc((100vw - 5rem) / ${width}))`)
     board.style.gridTemplateColumns = `repeat(${width}, var(--cell))`
 
     this.tileEls = []
@@ -82,6 +85,7 @@ export class SokobanView implements PuzzleView {
     board.addEventListener('keydown', (e) => this.onKeyDown(e))
     board.addEventListener('pointerdown', (e) => this.onPointerDown(e))
     board.addEventListener('pointerup', (e) => this.onPointerUp(e))
+    board.addEventListener('pointercancel', (e) => this.onPointerCancel(e))
     this.container.append(board)
     this.board = board
     this.repaint()
@@ -131,6 +135,16 @@ export class SokobanView implements PuzzleView {
       // Tap: step onto the pressed tile if it neighbours the player.
       this.board.focus()
       this.stepToTile(start.tile)
+    }
+  }
+
+  private onPointerCancel(e: PointerEvent): void {
+    // Interrupted touch (e.g. system gesture): drop the pending tap/swipe and capture.
+    this.touchStart = null
+    try {
+      this.board.releasePointerCapture(e.pointerId)
+    } catch {
+      // already released
     }
   }
 

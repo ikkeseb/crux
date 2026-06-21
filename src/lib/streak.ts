@@ -12,16 +12,17 @@ export interface Streak {
   longest: number
 }
 
-/** Whole-day index for a `YYYY-MM-DD` string (parsed as UTC to dodge DST/TZ drift). */
+/** Whole-day index for a `YYYY-MM-DD` string, or NaN if malformed (parsed as UTC
+ *  to dodge DST/TZ drift). */
 function dayIndex(date: string): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return NaN
   const [y, m, d] = date.split('-').map(Number)
   return Math.floor(Date.UTC(y!, m! - 1, d!) / 86_400_000)
 }
 
 export function computeStreak(dates: string[], today: string): Streak {
-  if (dates.length === 0) return { current: 0, longest: 0 }
-
-  const days = [...new Set(dates.map(dayIndex))].sort((a, b) => a - b)
+  const days = [...new Set(dates.map(dayIndex))].filter((n) => !Number.isNaN(n)).sort((a, b) => a - b)
+  if (days.length === 0) return { current: 0, longest: 0 }
 
   // Longest consecutive run.
   let longest = 1

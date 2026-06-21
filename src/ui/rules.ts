@@ -117,11 +117,13 @@ export function openRules(kind: PuzzleKind): void {
     el('div', { class: 'modal-foot' }, gotIt),
   )
   const backdrop = el('div', { class: 'modal-backdrop' }, dialog)
+  const appRoot = document.getElementById('app')
 
   const close = (): void => {
     document.removeEventListener('keydown', onKey, true)
     backdrop.remove()
     document.body.classList.remove('modal-open')
+    appRoot?.removeAttribute('inert')
     opener?.focus?.()
   }
 
@@ -155,6 +157,9 @@ export function openRules(kind: PuzzleKind): void {
   })
   document.addEventListener('keydown', onKey, true)
 
+  // Make the rest of the app inert: non-focusable and hidden from assistive tech,
+  // so the modal is genuinely modal and focus cannot escape behind it.
+  appRoot?.setAttribute('inert', '')
   document.body.classList.add('modal-open')
   document.body.append(backdrop)
   closeBtn.focus()

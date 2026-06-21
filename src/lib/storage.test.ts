@@ -171,4 +171,22 @@ describe('CruxStore — session pointer', () => {
     backend.map.set('crux:v1:session', JSON.stringify({ kind: 'sudoku' }))
     expect(new CruxStore(backend).loadSession()).toBeNull()
   })
+
+  test('a session with an unknown kind loads as null', () => {
+    const backend = new MemStore()
+    backend.map.set(
+      'crux:v1:session',
+      JSON.stringify({ kind: 'minesweeper', seed: 'abc', difficulty: 'easy', daily: false }),
+    )
+    expect(new CruxStore(backend).loadSession()).toBeNull()
+  })
+
+  test('a session with an unknown difficulty loads as null', () => {
+    const backend = new MemStore()
+    backend.map.set(
+      'crux:v1:session',
+      JSON.stringify({ kind: 'sudoku', seed: 'abc', difficulty: 'impossible', daily: false }),
+    )
+    expect(new CruxStore(backend).loadSession()).toBeNull()
+  })
 })
