@@ -190,6 +190,32 @@ export class SokobanView implements PuzzleView {
     this.reset()
   }
 
+  serialize(): unknown {
+    return { boxes: this.state.boxes, player: this.state.player, moves: this.moves, pushes: this.pushes }
+  }
+
+  restore(data: unknown): boolean {
+    if (!data || typeof data !== 'object') return false
+    const d = data as { boxes?: unknown; player?: unknown; moves?: unknown; pushes?: unknown }
+    const { width, height, walls } = this.level
+    const n = width * height
+    const onFloor = (i: unknown): i is number =>
+      typeof i === 'number' && Number.isInteger(i) && i >= 0 && i < n && !walls[i]
+    if (!Array.isArray(d.boxes) || d.boxes.length !== this.level.boxes.length) return false
+    if (!d.boxes.every(onFloor) || new Set(d.boxes).size !== d.boxes.length) return false
+    if (!onFloor(d.player) || d.boxes.includes(d.player)) return false
+    this.state = { boxes: (d.boxes as number[]).slice(), player: d.player }
+    this.moves = typeof d.moves === 'number' && d.moves >= 0 ? d.moves : 0
+    this.pushes = typeof d.pushes === 'number' && d.pushes >= 0 ? d.pushes : 0
+    this.undoStack = []
+    this.solved = false
+    this.board.classList.remove('won')
+    this.repaint()
+    this.checkWin()
+    this.emitStatus()
+    return true
+  }
+
   /** Solver-powered hint: take one step of the optimal solution from the current state. */
   hint(): void {
     if (this.solved) return

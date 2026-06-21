@@ -303,6 +303,30 @@ export class NonogramView implements PuzzleView {
     this.reset()
   }
 
+  serialize(): unknown {
+    return { marks: this.marks }
+  }
+
+  restore(data: unknown): boolean {
+    if (!data || typeof data !== 'object') return false
+    const marks = (data as { marks?: unknown }).marks
+    const { width, height } = this.puzzle
+    if (!Array.isArray(marks) || marks.length !== height) return false
+    for (const row of marks) {
+      if (!Array.isArray(row) || row.length !== width) return false
+      for (const v of row) if (v !== UNKNOWN && v !== EMPTY && v !== FILLED) return false
+    }
+    this.marks = (marks as number[][]).map((r) => r.slice())
+    this.undoStack = []
+    this.solved = false
+    this.board.classList.remove('won')
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) this.paintCell(x, y)
+    this.refreshClues()
+    this.checkWin()
+    this.emitStatus()
+    return true
+  }
+
   /** Solver-powered hint: flag a wrong fill, else reveal the next deducible cell. */
   hint(): void {
     if (this.solved) return

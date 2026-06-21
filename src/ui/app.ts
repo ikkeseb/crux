@@ -1,6 +1,8 @@
 import type { Difficulty, PuzzleKind } from '../lib/types'
 import { DIFFICULTIES, PUZZLE_KINDS } from '../lib/types'
 import { dateKey } from '../lib/daily'
+import { getStore } from '../lib/storage'
+import { computeStreak } from '../lib/streak'
 import { clear, el } from './dom'
 import type { PuzzleStatus, PuzzleView } from './types'
 import { NonogramView } from './nonogram-view'
@@ -65,6 +67,7 @@ function randomSeed(): string {
 
 export class App {
   private readonly root: HTMLElement
+  private readonly store = getStore()
   private kind: PuzzleKind = 'nonogram'
   private difficulty: Difficulty = 'easy'
   private daily = false
@@ -81,8 +84,11 @@ export class App {
   private diffBadge!: HTMLElement
   private seedEl!: HTMLElement
   private timeEl!: HTMLElement
+  private bestEl!: HTMLElement
+  private streakEl!: HTMLElement
   private noteEl!: HTMLElement
   private banner!: HTMLElement
+  private bannerLabel!: HTMLElement
   private bannerTime!: HTMLElement
 
   // timer
@@ -100,8 +106,22 @@ export class App {
     clear(this.root)
     this.root.classList.add('app')
     this.root.append(this.buildTopbar(), this.buildStage())
-    this.selectKind('nonogram', false)
-    this.newGame(true)
+
+    // Resume where the player left off, if anything is on record.
+    const session = this.store.loadSession()
+    if (session) {
+      this.kind = session.kind
+      this.difficulty = session.difficulty
+      this.daily = session.daily
+      this.seed = session.seed
+      this.difficultySelect.value = this.difficulty
+      this.dailyBtn.setAttribute('aria-pressed', String(this.daily))
+      this.selectKind(session.kind, false)
+      this.newGame(false)
+    } else {
+      this.selectKind('nonogram', false)
+      this.newGame(true)
+    }
     this.bindGlobalKeys()
   }
 
@@ -166,13 +186,15 @@ export class App {
     this.banner = el(
       'div',
       { class: 'banner', role: 'status' },
-      '✓ Solved!',
+      (this.bannerLabel = el('span', { class: 'banner-label', text: '✓ Solved!' })),
       (this.bannerTime = el('span', { class: 'time' })),
     )
 
     this.diffBadge = el('span', { class: 'badge' })
     this.progressEl = el('span', { class: 'value', text: '—' })
     this.timeEl = el('span', { class: 'value', text: '0:00' })
+    this.bestEl = el('span', { class: 'value', text: '—' })
+    this.streakEl = el('span', { class: 'value', text: '—' })
     this.seedEl = el('span', { class: 'value seed' })
     this.noteEl = el('div', { class: 'note' })
 
@@ -183,6 +205,8 @@ export class App {
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Difficulty' }), this.diffBadge),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Progress' }), this.progressEl),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Time' }), this.timeEl),
+      el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Best' }), this.bestEl),
+      el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Streak' }), this.streakEl),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Seed' }), this.seedEl),
       this.noteEl,
     )
@@ -233,10 +257,27 @@ export class App {
     if (this.daily) this.seed = dateKey(new Date())
     else if (newSeed) this.seed = randomSeed()
 
+    // Read any saved board BEFORE load(), whose status emit would overwrite it.
+    const saved = this.store.loadBoard(this.kind, this.seed, this.difficulty)
     this.view.load(this.seed, this.difficulty)
+
+    let resumeMs = 0
+    if (saved && typeof saved === 'object') {
+      const wrap = saved as { s?: unknown; t?: unknown }
+      if (this.view.restore(wrap.s) && typeof wrap.t === 'number' && wrap.t >= 0) resumeMs = wrap.t
+    }
+
+    this.store.saveSession({
+      kind: this.kind,
+      seed: this.seed,
+      difficulty: this.difficulty,
+      daily: this.daily,
+    })
     this.seedEl.textContent = this.daily ? `daily ${this.seed}` : this.seed
+    this.updateBest()
+    this.updateStreak()
     this.banner.classList.remove('show')
-    this.startTimer()
+    this.startTimer(resumeMs)
     this.view.focus()
   }
 
@@ -260,14 +301,51 @@ export class App {
     if (s.solved && !this.solvedShown) {
       this.solvedShown = true
       this.stopTimer()
-      this.bannerTime.textContent = this.formatTime(this.elapsedMs)
-      this.banner.classList.add('show')
+      this.recordWin(s.difficulty)
     } else if (!s.solved && this.solvedShown) {
       // Undo took the board back out of a solved state: clear the win and resume timing.
       this.solvedShown = false
       this.banner.classList.remove('show')
       this.resumeTimer()
+    } else if (!s.solved) {
+      this.saveProgress()
     }
+  }
+
+  private saveProgress(): void {
+    if (!this.view) return
+    this.store.saveBoard(this.kind, this.seed, this.difficulty, {
+      s: this.view.serialize(),
+      t: this.currentElapsed(),
+    })
+  }
+
+  private recordWin(difficulty: Difficulty): void {
+    const timeMs = this.elapsedMs
+    const res = this.store.recordCompletion({
+      kind: this.kind,
+      difficulty,
+      timeMs,
+      daily: this.daily,
+      date: this.daily ? this.seed : undefined,
+    })
+    this.store.clearBoard(this.kind, this.seed, this.difficulty)
+    this.updateBest()
+    this.updateStreak()
+    this.bannerLabel.textContent = res.best ? '✓ New best!' : '✓ Solved!'
+    this.bannerTime.textContent = this.formatTime(timeMs)
+    this.banner.classList.add('show')
+  }
+
+  private updateBest(): void {
+    const best = this.store.bestTime(this.kind, this.difficulty)
+    this.bestEl.textContent = best === null ? '—' : this.formatTime(best)
+  }
+
+  private updateStreak(): void {
+    const { current, longest } = computeStreak(this.store.dailyDates(), dateKey(new Date()))
+    this.streakEl.textContent =
+      current > 0 ? `${current}🔥${longest > current ? ` · best ${longest}` : ''}` : '—'
   }
 
   // ---- timer ----
@@ -279,13 +357,17 @@ export class App {
     }, 500)
   }
 
-  private startTimer(): void {
+  private startTimer(fromMs = 0): void {
     this.stopTimer()
     this.solvedShown = false
-    this.elapsedMs = 0
-    this.startedAt = Date.now()
-    this.timeEl.textContent = '0:00'
+    this.elapsedMs = fromMs
+    this.startedAt = Date.now() - fromMs
+    this.timeEl.textContent = this.formatTime(this.elapsedMs)
     this.runTimer()
+  }
+
+  private currentElapsed(): number {
+    return this.running ? Date.now() - this.startedAt : this.elapsedMs
   }
 
   private resumeTimer(): void {

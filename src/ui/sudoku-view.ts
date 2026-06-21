@@ -12,6 +12,19 @@ interface Snapshot {
   pencil: number[][]
 }
 
+/** Validate a restored 9×9 grid: 'digit' cells are 0–9, 'mask' cells are any non-negative int. */
+function is9x9(g: unknown, kind: 'digit' | 'mask'): g is number[][] {
+  if (!Array.isArray(g) || g.length !== 9) return false
+  for (const row of g) {
+    if (!Array.isArray(row) || row.length !== 9) return false
+    for (const v of row) {
+      if (typeof v !== 'number' || !Number.isInteger(v) || v < 0) return false
+      if (kind === 'digit' && v > 9) return false
+    }
+  }
+  return true
+}
+
 export class SudokuView implements PuzzleView {
   readonly kind: PuzzleKind = 'sudoku'
   private readonly container: HTMLElement
@@ -223,6 +236,30 @@ export class SudokuView implements PuzzleView {
 
   restart(): void {
     this.reset()
+  }
+
+  serialize(): unknown {
+    return { values: this.values, pencil: this.pencil }
+  }
+
+  restore(data: unknown): boolean {
+    if (!data || typeof data !== 'object') return false
+    const d = data as { values?: unknown; pencil?: unknown }
+    if (!is9x9(d.values, 'digit') || !is9x9(d.pencil, 'mask')) return false
+    const values = d.values
+    // Given cells must match this puzzle (guards against a stale/foreign save).
+    for (let y = 0; y < 9; y++)
+      for (let x = 0; x < 9; x++)
+        if (this.given[y]![x] && values[y]![x] !== this.puzzle.grid[y]![x]) return false
+    this.values = values.map((r) => r.slice())
+    this.pencil = d.pencil.map((r) => r.slice())
+    this.undoStack = []
+    this.solved = false
+    this.board.classList.remove('won')
+    this.repaint()
+    this.checkWin()
+    this.emitStatus()
+    return true
   }
 
   /** Solver-powered hint: flag a wrong entry, else place the next logically-forced digit. */
