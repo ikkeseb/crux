@@ -4,14 +4,8 @@ import { solveSokoban } from '../sokoban/solver'
 import { DIRS, applyMove, charToDir, isSolved } from '../sokoban/level'
 import type { SokobanLevel, SokobanPuzzle } from '../sokoban/types'
 import { clear, el } from './dom'
+import { fitSokoban } from './board-size'
 import type { PuzzleView, StatusListener, ViewContext } from './types'
-
-function cellPx(maxDim: number): number {
-  if (maxDim <= 7) return 46
-  if (maxDim <= 9) return 40
-  if (maxDim <= 12) return 34
-  return 28
-}
 
 interface State {
   boxes: number[]
@@ -70,10 +64,7 @@ export class SokobanView implements PuzzleView {
       role: 'grid',
       'aria-label': 'Sokoban board',
     })
-    // Inline cells can't be hit by a media query — bake the viewport cap in so
-    // larger boards shrink to fit a phone instead of overflowing under touch-action:none.
-    const cap = cellPx(Math.max(width, height))
-    board.style.setProperty('--cell', `min(${cap}px, calc((100vw - 5rem) / ${width}))`)
+    board.style.setProperty('--cell', fitSokoban(width, height))
     board.style.gridTemplateColumns = `repeat(${width}, var(--cell))`
 
     this.tileEls = []
@@ -274,6 +265,7 @@ export class SokobanView implements PuzzleView {
     if (sol.status !== 'solved' || sol.moves.length === 0) {
       this.emitStatus(
         sol.status === 'capped' ? 'Too tangled to hint — try undo' : 'Stuck — press undo',
+        'warn',
       )
       return
     }
@@ -301,13 +293,14 @@ export class SokobanView implements PuzzleView {
     clear(this.container)
   }
 
-  private emitStatus(note?: string): void {
+  private emitStatus(note?: string, noteTone: 'info' | 'warn' = 'info'): void {
     const onGoal = this.state.boxes.filter((b) => this.level.goals[b]).length
     this.onStatus({
       solved: this.solved,
       progress: `${onGoal}/${this.state.boxes.length} · ${this.pushes}p`,
       difficulty: this.puzzle.difficulty,
       note,
+      noteTone,
     })
   }
 }

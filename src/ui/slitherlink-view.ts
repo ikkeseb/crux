@@ -2,18 +2,12 @@ import type { Difficulty, PuzzleKind } from '../lib/types'
 import { generateSlitherlink } from '../slitherlink/generator'
 import { E_CROSS, E_LINE, E_UNKNOWN, type EdgeState, type SlitherlinkPuzzle } from '../slitherlink/types'
 import { clear, el } from './dom'
+import { fitSlitherlink } from './board-size'
 import type { PuzzleView, StatusListener, ViewContext } from './types'
 
 interface Snapshot {
   h: EdgeState[][]
   v: EdgeState[][]
-}
-
-function lenPx(maxDim: number): number {
-  if (maxDim <= 5) return 44
-  if (maxDim <= 6) return 40
-  if (maxDim <= 8) return 34
-  return 28
 }
 
 /** A clicked edge, decoded from its dataset. */
@@ -73,11 +67,10 @@ export class SlitherlinkView implements PuzzleView {
     const board = el('div', {
       class: 'board slither',
       tabindex: '0',
-      role: 'application',
+      role: 'group',
       'aria-label': 'Slitherlink board',
     })
-    const cap = lenPx(Math.max(rows, cols))
-    board.style.setProperty('--len', `min(${cap}px, calc((100vw - 7rem) / ${cols + (cols + 1) * 0.34}))`)
+    board.style.setProperty('--len', fitSlitherlink(cols, rows))
     board.style.gridTemplateColumns = `var(--dot) ${'var(--len) var(--dot) '.repeat(cols)}`.trim()
     board.style.gridTemplateRows = `var(--dot) ${'var(--len) var(--dot) '.repeat(rows)}`.trim()
 
@@ -398,14 +391,14 @@ export class SlitherlinkView implements PuzzleView {
       for (let c = 0; c < cols; c++)
         if (isMistake(this.h[dr]![c]!, sol.h[dr]![c]!)) {
           this.flash('h', dr, c)
-          this.emitStatus('Mistake: this mark contradicts the loop')
+          this.emitStatus('Mistake: this mark contradicts the loop', 'warn')
           return
         }
     for (let r = 0; r < rows; r++)
       for (let dc = 0; dc <= cols; dc++)
         if (isMistake(this.v[r]![dc]!, sol.v[r]![dc]!)) {
           this.flash('v', r, dc)
-          this.emitStatus('Mistake: this mark contradicts the loop')
+          this.emitStatus('Mistake: this mark contradicts the loop', 'warn')
           return
         }
 
@@ -479,12 +472,13 @@ export class SlitherlinkView implements PuzzleView {
     clear(this.container)
   }
 
-  private emitStatus(note?: string): void {
+  private emitStatus(note?: string, noteTone: 'info' | 'warn' = 'info'): void {
     this.onStatus({
       solved: this.solved,
       progress: `${this.lineCount()} / ${this.solutionLineCount()} edges`,
       difficulty: this.puzzle.difficulty,
       note,
+      noteTone,
     })
   }
 }

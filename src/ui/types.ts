@@ -9,6 +9,8 @@ export interface PuzzleStatus {
   difficulty: Difficulty
   /** Transient note (hint placed, mistake found, …); cleared on next action. */
   note?: string
+  /** Tone for the note — 'warn' (a mistake/stuck) renders red, 'info' (default) gold. */
+  noteTone?: 'info' | 'warn'
 }
 
 export type StatusListener = (status: PuzzleStatus) => void

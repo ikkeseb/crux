@@ -3,6 +3,7 @@ import { generateSudoku } from '../sudoku/generator'
 import { isValidSolution } from '../sudoku/solver'
 import type { SudokuPuzzle } from '../sudoku/types'
 import { clear, el } from './dom'
+import { fitSudoku } from './board-size'
 import type { PuzzleView, StatusListener, ViewContext } from './types'
 
 const FULL_MASK = 0x3fe // bits 1..9
@@ -72,6 +73,7 @@ export class SudokuView implements PuzzleView {
       role: 'grid',
       'aria-label': 'Sudoku board',
     })
+    board.style.setProperty('--cell', fitSudoku())
     this.cellEls = []
     for (let y = 0; y < 9; y++) {
       const row: HTMLDivElement[] = []
@@ -313,7 +315,7 @@ export class SudokuView implements PuzzleView {
           this.cursor = { x, y }
           this.repaint()
           this.flash(x, y)
-          this.emitStatus('Mistake: wrong digit here')
+          this.emitStatus('Mistake: wrong digit here', 'warn')
           return
         }
       }
@@ -379,7 +381,7 @@ export class SudokuView implements PuzzleView {
     clear(this.container)
   }
 
-  private emitStatus(note?: string): void {
+  private emitStatus(note?: string, noteTone: 'info' | 'warn' = 'info'): void {
     let filled = 0
     for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) if (this.values[y]![x] !== 0) filled++
     this.onStatus({
@@ -387,6 +389,7 @@ export class SudokuView implements PuzzleView {
       progress: `${filled} / 81 placed`,
       difficulty: this.puzzle.difficulty,
       note,
+      noteTone,
     })
   }
 }

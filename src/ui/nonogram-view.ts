@@ -4,17 +4,10 @@ import { EMPTY, FILLED, UNKNOWN } from '../nonogram/types'
 import { gridMatchesClues, runsOf, solveLine } from '../nonogram/solver'
 import type { NonogramPuzzle } from '../nonogram/types'
 import { clear, el } from './dom'
+import { fitNonogram } from './board-size'
 import type { PuzzleView, StatusListener, ViewContext } from './types'
 
 const CROSS = EMPTY // a player "X" mark means "known empty"
-
-function cellPx(maxDim: number): number {
-  if (maxDim <= 5) return 40
-  if (maxDim <= 8) return 32
-  if (maxDim <= 10) return 28
-  if (maxDim <= 15) return 24
-  return 20
-}
 
 export class NonogramView implements PuzzleView {
   readonly kind: PuzzleKind = 'nonogram'
@@ -71,11 +64,11 @@ export class NonogramView implements PuzzleView {
       role: 'grid',
       'aria-label': 'Nonogram board',
     })
-    // Cells are inline-styled, so a media query can't reach them — bake the
-    // viewport cap into the value: min() keeps the design size on desktop and
-    // shrinks cells so the grid fits a phone (~6rem reserves padding + clue gutter).
-    const cap = cellPx(Math.max(width, height))
-    board.style.setProperty('--cell', `min(${cap}px, calc((100vw - 6rem) / ${width}))`)
+    // Shared sizing model; fitNonogram reserves the `auto` clue-gutter footprint
+    // from the longest row/column clue so gutter + grid together fill --board-box.
+    const longestRow = Math.max(1, ...clues.rows.map((r) => r.length))
+    const longestCol = Math.max(1, ...clues.cols.map((c) => c.length))
+    board.style.setProperty('--cell', fitNonogram(width, height, longestRow, longestCol))
     board.style.gridTemplateColumns = `auto repeat(${width}, var(--cell))`
     board.style.gridTemplateRows = `auto repeat(${height}, var(--cell))`
 
@@ -382,7 +375,7 @@ export class NonogramView implements PuzzleView {
       for (let x = 0; x < width; x++) {
         if (this.marks[y]![x] === FILLED && this.puzzle.solution[y]![x] === 0) {
           this.flash(x, y)
-          this.emitStatus('Mistake: this cell should be empty')
+          this.emitStatus('Mistake: this cell should be empty', 'warn')
           return
         }
       }
@@ -450,7 +443,7 @@ export class NonogramView implements PuzzleView {
     clear(this.container)
   }
 
-  private emitStatus(note?: string): void {
+  private emitStatus(note?: string, noteTone: 'info' | 'warn' = 'info'): void {
     let filled = 0
     let target = 0
     for (let y = 0; y < this.puzzle.height; y++) {
@@ -464,6 +457,7 @@ export class NonogramView implements PuzzleView {
       progress: `${filled} / ${target} filled`,
       difficulty: this.puzzle.difficulty,
       note,
+      noteTone,
     })
   }
 }

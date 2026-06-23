@@ -86,11 +86,13 @@ export class App {
 
   // DOM refs
   private boardContainer!: HTMLElement
+  private boardMount!: HTMLElement
   private tabEls = new Map<PuzzleKind, HTMLButtonElement>()
   private difficultySelect!: HTMLSelectElement
   private dailyBtn!: HTMLButtonElement
   private legendSlot!: HTMLElement
   private progressEl!: HTMLElement
+  private progressBar!: HTMLElement
   private diffBadge!: HTMLElement
   private seedEl!: HTMLElement
   private timeEl!: HTMLElement
@@ -229,13 +231,26 @@ export class App {
 
   private buildStage(): HTMLElement {
     this.boardContainer = el('div', { class: 'board-panel' })
+    // Views own (and clear) this inner mount; the banner + confetti live in the
+    // board-panel itself, so a re-render never wipes them.
+    this.boardMount = el('div', { class: 'board-mount' })
+    this.boardContainer.append(this.boardMount)
 
+    // The win banner sits atop the board panel (where the eye lands on solve and
+    // the confetti rains down), and carries the next action — one tap from the gaze.
     this.banner = el(
       'div',
       { class: 'banner', role: 'status' },
       (this.bannerLabel = el('span', { class: 'banner-label', text: '✓ Solved!' })),
       (this.bannerTime = el('span', { class: 'time' })),
+      el('button', {
+        class: 'banner-new',
+        type: 'button',
+        text: 'New puzzle',
+        onclick: () => this.newGame(true),
+      }),
     )
+    this.boardContainer.append(this.banner)
 
     this.diffBadge = el('span', { class: 'badge' })
     this.progressEl = el('span', { class: 'value', text: '—' })
@@ -251,6 +266,7 @@ export class App {
       el('h2', { text: 'Status' }),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Difficulty' }), this.diffBadge),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Progress' }), this.progressEl),
+      (this.progressBar = el('div', { class: 'progress-bar' }, el('i'))),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Time' }), this.timeEl),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Best' }), this.bestEl),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Streak' }), this.streakEl),
@@ -273,7 +289,7 @@ export class App {
 
     this.legendSlot = el('div', { class: 'card' }, el('h2', { text: 'Keys' }))
 
-    const sidebar = el('aside', { class: 'sidebar' }, this.banner, statusCard, controlsCard, this.legendSlot)
+    const sidebar = el('aside', { class: 'sidebar' }, statusCard, controlsCard, this.legendSlot)
     return el('main', { class: 'stage' }, this.boardContainer, sidebar)
   }
 
@@ -283,7 +299,7 @@ export class App {
     for (const [k, tab] of this.tabEls) tab.setAttribute('aria-selected', String(k === kind))
 
     this.view?.destroy()
-    const ctx = { container: this.boardContainer, onStatus: (s: PuzzleStatus) => this.onStatus(s) }
+    const ctx = { container: this.boardMount, onStatus: (s: PuzzleStatus) => this.onStatus(s) }
     this.view =
       kind === 'nonogram'
         ? new NonogramView(ctx)
@@ -355,9 +371,11 @@ export class App {
 
   private onStatus(s: PuzzleStatus): void {
     this.progressEl.textContent = s.progress
+    this.setProgressBar(s.progress)
     this.diffBadge.textContent = DIFFICULTY_LABEL[s.difficulty]
     this.diffBadge.className = `badge ${s.difficulty}`
     this.noteEl.textContent = s.note ?? ''
+    this.noteEl.className = `note${s.noteTone === 'warn' ? ' warn' : ''}`
     // Programmatic emit during newGame setup: display only, no persistence/win.
     if (this.loading) return
     if (s.solved && !this.solvedShown) {
@@ -374,6 +392,18 @@ export class App {
     } else if (!s.solved) {
       this.saveProgress()
     }
+  }
+
+  /** Drive the progress meter from the leading "a / b" of any view's progress text. */
+  private setProgressBar(progress: string): void {
+    const m = progress.match(/(\d+)\s*\/\s*(\d+)/)
+    let ratio = 0
+    if (m) {
+      const done = Number(m[1])
+      const total = Number(m[2])
+      if (total > 0) ratio = Math.max(0, Math.min(1, done / total))
+    }
+    this.progressBar.style.setProperty('--p', String(ratio))
   }
 
   private saveProgress(): void {
@@ -401,7 +431,10 @@ export class App {
     this.bannerLabel.textContent = res.best ? '✓ New best!' : '✓ Solved!'
     this.bannerTime.textContent = this.formatTime(timeMs)
     this.banner.classList.add('show')
-    confettiBurst(this.boardContainer)
+    // Burst into the inner mount (cleared on the next render) so it never lingers
+    // when you switch puzzle/difficulty right after a win; it still covers the
+    // whole panel via position:absolute against the relative board-panel.
+    confettiBurst(this.boardMount)
   }
 
   private updateBest(): void {

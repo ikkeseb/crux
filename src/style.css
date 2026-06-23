@@ -15,7 +15,7 @@
   --ink: #e8ebf3;
   --ink-dim: #b6bdd2;
   --muted: #828bab;
-  --muted-2: #5d6688;
+  --muted-2: #7e87a8;
   --accent: #f4b942; /* the "crux" — gold */
   --accent-ink: #1a1300;
   --accent-soft: rgba(244, 185, 66, 0.16);
@@ -210,25 +210,39 @@ select.select {
   background: var(--accent-soft);
 }
 
-/* ---- stage ---- */
+/* ---- stage ----
+ * The board lives in a fixed, square "stage" so it never jumps size when you
+ * switch puzzle type or difficulty. --board-box is the single length every board
+ * divides (see src/ui/board-size.ts); the panel is that box plus its padding, so
+ * the whole stage is centered with consistent framing across all four puzzles. */
 .stage {
+  --bp-pad: clamp(12px, 2vw, 22px);
+  --board-box: min(540px, calc(100vw - 360px), 82vh);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 268px;
+  grid-template-columns: calc(var(--board-box) + 2 * var(--bp-pad)) minmax(0, 260px);
   gap: 26px;
   align-items: start;
+  justify-content: center;
 }
 
 .board-panel {
   background: linear-gradient(180deg, var(--bg-2), var(--panel));
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
-  padding: clamp(14px, 2.5vw, 28px);
-  min-height: 360px;
+  padding: var(--bp-pad);
+  min-height: calc(var(--board-box) + 2 * var(--bp-pad));
   display: grid;
   place-items: center;
   box-shadow: var(--shadow);
   overflow: auto;
   position: relative;
+}
+
+/* the board + its touch controls; cleared and rebuilt by each view on render */
+.board-mount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* win confetti (added on solve, removed after ~2.4s; skipped at reduced-motion) */
@@ -294,6 +308,7 @@ select.select {
   font-family: var(--mono);
   color: var(--ink);
   font-size: 14px;
+  white-space: nowrap;
 }
 .statline .value.seed {
   font-size: 11px;
@@ -359,27 +374,66 @@ select.select {
   color: var(--accent);
   font-family: var(--mono);
 }
+.note.warn {
+  color: var(--bad);
+}
 
-/* win banner */
+/* progress meter — glanceable momentum under the Progress statline */
+.progress-bar {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+  margin: 2px 0 4px;
+}
+.progress-bar > i {
+  display: block;
+  height: 100%;
+  width: calc(var(--p, 0) * 100%);
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+/* win banner — overlays the solved board, where the eye (and confetti) already are */
 .banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
   display: none;
   align-items: center;
-  gap: 10px;
-  background: var(--good-soft);
-  border: 1px solid rgba(87, 209, 160, 0.5);
+  gap: 12px;
+  max-width: calc(100% - 28px);
+  background: var(--panel);
+  border: 1px solid rgba(87, 209, 160, 0.6);
   color: var(--good);
-  border-radius: var(--radius);
-  padding: 12px 16px;
+  border-radius: 999px;
+  padding: 9px 9px 9px 18px;
   font-weight: 700;
-  animation: pop 0.4s ease;
+  box-shadow: var(--shadow);
+  animation: pop 0.34s ease;
 }
 .banner.show {
   display: flex;
 }
 .banner .time {
-  margin-left: auto;
   font-family: var(--mono);
   color: var(--ink);
+}
+.banner .banner-new {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 700 12px var(--sans);
+  border-radius: 999px;
+  padding: 7px 14px;
+}
+.banner .banner-new:hover {
+  filter: brightness(1.06);
 }
 
 @keyframes pop {
@@ -535,6 +589,19 @@ body.modal-open {
   font-family: var(--mono);
   user-select: none;
   touch-action: manipulation;
+  /* a brief settle on mount, so switching type/difficulty reads as the
+   * instrument changing modes rather than a hard content flash */
+  animation: board-in 0.18s ease;
+}
+@keyframes board-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .board:focus-visible {
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
@@ -577,7 +644,8 @@ body.modal-open {
 }
 .nono .clue.done {
   color: var(--muted-2);
-  opacity: 0.5;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 .nono .cell {
   width: var(--cell);
@@ -623,7 +691,6 @@ body.modal-open {
   grid-template-rows: repeat(9, var(--cell));
   background: var(--line);
   border: 2px solid var(--line);
-  --cell: 46px;
 }
 .sudoku .scell {
   background: var(--bg-2);
@@ -652,6 +719,7 @@ body.modal-open {
 .sudoku .scell.conflict {
   color: var(--bad);
   background: var(--bad-soft);
+  box-shadow: inset 0 0 0 2px rgba(232, 97, 92, 0.5);
 }
 .sudoku .scell.hint {
   animation: hintpulse 0.9s ease;
@@ -715,6 +783,16 @@ body.modal-open {
 }
 .sokoban .tile.on-goal .box {
   background: linear-gradient(160deg, #6fe0ad, #36b07f);
+}
+/* non-colour confirmation that a box is home (not green alone) */
+.sokoban .tile.on-goal .box::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 calc(var(--cell) * 0.42) var(--sans);
+  color: rgba(11, 38, 28, 0.85);
 }
 .sokoban .player {
   position: absolute;
@@ -814,10 +892,11 @@ body.modal-open {
 }
 .slither .sl-clue.sat {
   color: var(--muted-2);
-  opacity: 0.55;
+  text-decoration: line-through;
 }
 .slither .sl-clue.over {
   color: var(--bad);
+  font-weight: 700;
 }
 .slither .swatch.line {
   background: var(--accent);
@@ -918,16 +997,26 @@ body.modal-open {
 @media (max-width: 860px) {
   .stage {
     grid-template-columns: 1fr;
+    /* Single column: the board may use the full width, capped so it stays square. */
+    --board-box: min(540px, calc(100vw - 36px), 80vh);
   }
   .sidebar {
     order: 2;
   }
 }
 
-/* Sudoku has fixed 46px cells (414px) — shrink them so the 9×9 fits a phone. */
-@media (max-width: 480px) {
-  .sudoku {
-    --cell: clamp(30px, 9.2vw, 46px);
+/* Topbar: stack deliberately on narrow phones; let the tabs scroll, not wrap. */
+@media (max-width: 680px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .toolset {
+    justify-content: flex-start;
   }
 }
 
