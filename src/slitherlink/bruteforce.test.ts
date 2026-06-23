@@ -65,10 +65,11 @@ function isValidSolution(a: Assignment, clues: Clue[][], rows: number, cols: num
   const stack = [start]
   while (stack.length) {
     const x = stack.pop()!
-    for (const y of adj.get(x)!) if (!seen.has(y)) {
-      seen.add(y)
-      stack.push(y)
-    }
+    for (const y of adj.get(x)!)
+      if (!seen.has(y)) {
+        seen.add(y)
+        stack.push(y)
+      }
   }
   return seen.size === deg.size
 }

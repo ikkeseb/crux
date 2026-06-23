@@ -1,6 +1,12 @@
 import type { Difficulty, PuzzleKind } from '../lib/types'
 import { generateSlitherlink } from '../slitherlink/generator'
-import { E_CROSS, E_LINE, E_UNKNOWN, type EdgeState, type SlitherlinkPuzzle } from '../slitherlink/types'
+import {
+  E_CROSS,
+  E_LINE,
+  E_UNKNOWN,
+  type EdgeState,
+  type SlitherlinkPuzzle,
+} from '../slitherlink/types'
 import { clear, el } from './dom'
 import { fitSlitherlink } from './board-size'
 import type { PuzzleView, StatusListener, ViewContext } from './types'
@@ -96,7 +102,11 @@ export class SlitherlinkView implements PuzzleView {
     for (let dr = 0; dr <= rows; dr++) {
       const row: HTMLDivElement[] = []
       for (let c = 0; c < cols; c++) {
-        const edge = el('div', { class: 'edge h', 'data-t': 'h', 'data-a': dr, 'data-b': c }, el('i'))
+        const edge = el(
+          'div',
+          { class: 'edge h', 'data-t': 'h', 'data-a': dr, 'data-b': c },
+          el('i'),
+        )
         edge.style.gridRow = String(2 * dr + 1)
         edge.style.gridColumn = String(2 * c + 2)
         board.append(edge)
@@ -109,7 +119,11 @@ export class SlitherlinkView implements PuzzleView {
     for (let r = 0; r < rows; r++) {
       const row: HTMLDivElement[] = []
       for (let dc = 0; dc <= cols; dc++) {
-        const edge = el('div', { class: 'edge v', 'data-t': 'v', 'data-a': r, 'data-b': dc }, el('i'))
+        const edge = el(
+          'div',
+          { class: 'edge v', 'data-t': 'v', 'data-a': r, 'data-b': dc },
+          el('i'),
+        )
         edge.style.gridRow = String(2 * r + 2)
         edge.style.gridColumn = String(2 * dc + 1)
         board.append(edge)
@@ -157,7 +171,12 @@ export class SlitherlinkView implements PuzzleView {
       onclick: () => this.setMode('cross'),
     }) as HTMLButtonElement
     this.crossBtn.append(el('span', { class: 'swatch cross' }), 'Cross')
-    return el('div', { class: 'painttoggle', role: 'group', 'aria-label': 'Mark mode' }, this.lineBtn, this.crossBtn)
+    return el(
+      'div',
+      { class: 'painttoggle', role: 'group', 'aria-label': 'Mark mode' },
+      this.lineBtn,
+      this.crossBtn,
+    )
   }
 
   private setMode(mode: 'line' | 'cross'): void {
@@ -213,16 +232,28 @@ export class SlitherlinkView implements PuzzleView {
     let nextDc = dc
     switch (e.key) {
       case 'ArrowUp':
-        if (dr > 0) { id = { t: 'v', a: dr - 1, b: dc }; nextDr = dr - 1 }
+        if (dr > 0) {
+          id = { t: 'v', a: dr - 1, b: dc }
+          nextDr = dr - 1
+        }
         break
       case 'ArrowDown':
-        if (dr < rows) { id = { t: 'v', a: dr, b: dc }; nextDr = dr + 1 }
+        if (dr < rows) {
+          id = { t: 'v', a: dr, b: dc }
+          nextDr = dr + 1
+        }
         break
       case 'ArrowLeft':
-        if (dc > 0) { id = { t: 'h', a: dr, b: dc - 1 }; nextDc = dc - 1 }
+        if (dc > 0) {
+          id = { t: 'h', a: dr, b: dc - 1 }
+          nextDc = dc - 1
+        }
         break
       case 'ArrowRight':
-        if (dc < cols) { id = { t: 'h', a: dr, b: dc }; nextDc = dc + 1 }
+        if (dc < cols) {
+          id = { t: 'h', a: dr, b: dc }
+          nextDc = dc + 1
+        }
         break
       default:
         return // not ours — let it bubble (global U/H/R/N etc.)
@@ -323,11 +354,9 @@ export class SlitherlinkView implements PuzzleView {
     const { rows, cols } = this.puzzle
     const sol = this.puzzle.solution
     for (let dr = 0; dr <= rows; dr++)
-      for (let c = 0; c < cols; c++)
-        if ((this.h[dr]![c] === E_LINE) !== sol.h[dr]![c]) return
+      for (let c = 0; c < cols; c++) if ((this.h[dr]![c] === E_LINE) !== sol.h[dr]![c]) return
     for (let r = 0; r < rows; r++)
-      for (let dc = 0; dc <= cols; dc++)
-        if ((this.v[r]![dc] === E_LINE) !== sol.v[r]![dc]) return
+      for (let dc = 0; dc <= cols; dc++) if ((this.v[r]![dc] === E_LINE) !== sol.v[r]![dc]) return
     this.solved = true
     this.repaint()
     this.board.classList.add('won')
@@ -357,7 +386,8 @@ export class SlitherlinkView implements PuzzleView {
     if (!data || typeof data !== 'object') return false
     const d = data as { h?: unknown; v?: unknown }
     const { rows, cols } = this.puzzle
-    if (!this.isStateGrid(d.h, rows + 1, cols) || !this.isStateGrid(d.v, rows, cols + 1)) return false
+    if (!this.isStateGrid(d.h, rows + 1, cols) || !this.isStateGrid(d.v, rows, cols + 1))
+      return false
     this.h = (d.h as EdgeState[][]).map((r) => r.slice())
     this.v = (d.v as EdgeState[][]).map((r) => r.slice())
     this.undoStack = []
@@ -373,7 +403,8 @@ export class SlitherlinkView implements PuzzleView {
     if (!Array.isArray(g) || g.length !== h) return false
     for (const row of g) {
       if (!Array.isArray(row) || row.length !== w) return false
-      for (const val of row) if (val !== E_UNKNOWN && val !== E_LINE && val !== E_CROSS) return false
+      for (const val of row)
+        if (val !== E_UNKNOWN && val !== E_LINE && val !== E_CROSS) return false
     }
     return true
   }

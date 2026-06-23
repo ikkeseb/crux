@@ -50,10 +50,7 @@ function fillFraction(grid: number[][]): number {
  * the solver's effort; if a target difficulty is given we keep retrying and
  * return the closest match found.
  */
-export function generateNonogram(
-  seed: string | number,
-  opts: NonogramGenOptions,
-): NonogramPuzzle {
+export function generateNonogram(seed: string | number, opts: NonogramGenOptions): NonogramPuzzle {
   const { width, height } = opts
   const area = width * height
   const density = Math.min(0.9, Math.max(0.1, opts.density ?? 0.55))
@@ -97,9 +94,7 @@ export function generateNonogram(
     if (!opts.difficulty) return puzzle
     if (grade.difficulty === opts.difficulty) return puzzle
 
-    const distance = Math.abs(
-      DIFFICULTY_RANK[grade.difficulty] - DIFFICULTY_RANK[opts.difficulty],
-    )
+    const distance = Math.abs(DIFFICULTY_RANK[grade.difficulty] - DIFFICULTY_RANK[opts.difficulty])
     if (distance < bestDistance) {
       bestDistance = distance
       best = puzzle // closest difficulty match / first unique found

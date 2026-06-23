@@ -479,7 +479,12 @@ function fishFrom(
     const elims: Elimination[] = []
     const corners: Cell[] = []
     if (orient === 'row') {
-      corners.push({ r: a.line, c: p }, { r: a.line, c: q }, { r: b.line, c: p }, { r: b.line, c: q })
+      corners.push(
+        { r: a.line, c: p },
+        { r: a.line, c: q },
+        { r: b.line, c: p },
+        { r: b.line, c: q },
+      )
       for (let r = 0; r < 9; r++) {
         if (r === a.line || r === b.line) continue
         for (const c of [p, q]) {
@@ -487,7 +492,12 @@ function fishFrom(
         }
       }
     } else {
-      corners.push({ r: p, c: a.line }, { r: q, c: a.line }, { r: p, c: b.line }, { r: q, c: b.line })
+      corners.push(
+        { r: p, c: a.line },
+        { r: q, c: a.line },
+        { r: p, c: b.line },
+        { r: q, c: b.line },
+      )
       for (let c = 0; c < 9; c++) {
         if (c === a.line || c === b.line) continue
         for (const r of [p, q]) {
@@ -521,7 +531,8 @@ export function findXyWing(s: State): SolveStep | null {
     const pv = s.cand[pivot.r][pivot.c]
     const pincers = bivalue.filter(
       (cell) =>
-        PEERS[pivot.r][pivot.c].has(idx(cell.r, cell.c)) && popcount(s.cand[cell.r][cell.c] & pv) === 1,
+        PEERS[pivot.r][pivot.c].has(idx(cell.r, cell.c)) &&
+        popcount(s.cand[cell.r][cell.c] & pv) === 1,
     )
     for (const [p1, p2] of combinations(pincers, 2)) {
       const a = s.cand[p1.r][p1.c]
@@ -536,7 +547,8 @@ export function findXyWing(s: State): SolveStep | null {
       for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
           const id = idx(r, c)
-          if (id === idx(pivot.r, pivot.c) || id === idx(p1.r, p1.c) || id === idx(p2.r, p2.c)) continue
+          if (id === idx(pivot.r, pivot.c) || id === idx(p1.r, p1.c) || id === idx(p2.r, p2.c))
+            continue
           if (s.grid[r][c] !== 0 || !(s.cand[r][c] & bit(z))) continue
           if (PEERS[p1.r][p1.c].has(id) && PEERS[p2.r][p2.c].has(id)) elims.push({ r, c, d: z })
         }

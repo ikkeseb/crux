@@ -269,8 +269,10 @@ function pickBranch(e: Edges, rows: number, cols: number): Ref | null {
       if (line === 1 && unknown) return unknown
     }
   }
-  for (let dr = 0; dr <= rows; dr++) for (let c = 0; c < cols; c++) if (e.h[dr]![c] === E_UNKNOWN) return ['h', dr, c]
-  for (let r = 0; r < rows; r++) for (let dc = 0; dc <= cols; dc++) if (e.v[r]![dc] === E_UNKNOWN) return ['v', r, dc]
+  for (let dr = 0; dr <= rows; dr++)
+    for (let c = 0; c < cols; c++) if (e.h[dr]![c] === E_UNKNOWN) return ['h', dr, c]
+  for (let r = 0; r < rows; r++)
+    for (let dc = 0; dc <= cols; dc++) if (e.v[r]![dc] === E_UNKNOWN) return ['v', r, dc]
   return null
 }
 

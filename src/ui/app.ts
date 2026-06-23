@@ -37,8 +37,7 @@ function kbd(...keys: string[]): HTMLElement {
 
 function legendFor(kind: PuzzleKind): HTMLElement {
   const wrap = el('div', { class: 'legend' })
-  const line = (label: HTMLElement, text: string): HTMLElement =>
-    el('div', {}, label, ' ', text)
+  const line = (label: HTMLElement, text: string): HTMLElement => el('div', {}, label, ' ', text)
   if (kind === 'nonogram') {
     wrap.append(
       line(kbd('↑', '↓', '←', '→'), 'move'),
@@ -66,7 +65,18 @@ function legendFor(kind: PuzzleKind): HTMLElement {
     )
   }
   wrap.append(
-    el('div', { class: 'legend-global' }, kbd('U'), ' undo · ', kbd('H'), ' hint · ', kbd('R'), ' restart · ', kbd('N'), ' new'),
+    el(
+      'div',
+      { class: 'legend-global' },
+      kbd('U'),
+      ' undo · ',
+      kbd('H'),
+      ' hint · ',
+      kbd('R'),
+      ' restart · ',
+      kbd('N'),
+      ' new',
+    ),
   )
   return wrap
 }
@@ -226,7 +236,14 @@ export class App {
       newBtn,
     )
 
-    return el('header', { class: 'topbar' }, brand, tabs, el('div', { class: 'topbar-spacer' }), toolset)
+    return el(
+      'header',
+      { class: 'topbar' },
+      brand,
+      tabs,
+      el('div', { class: 'topbar-spacer' }),
+      toolset,
+    )
   }
 
   private buildStage(): HTMLElement {
@@ -264,12 +281,27 @@ export class App {
       'div',
       { class: 'card' },
       el('h2', { text: 'Status' }),
-      el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Difficulty' }), this.diffBadge),
-      el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Progress' }), this.progressEl),
+      el(
+        'div',
+        { class: 'statline' },
+        el('span', { class: 'label', text: 'Difficulty' }),
+        this.diffBadge,
+      ),
+      el(
+        'div',
+        { class: 'statline' },
+        el('span', { class: 'label', text: 'Progress' }),
+        this.progressEl,
+      ),
       (this.progressBar = el('div', { class: 'progress-bar' }, el('i'))),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Time' }), this.timeEl),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Best' }), this.bestEl),
-      el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Streak' }), this.streakEl),
+      el(
+        'div',
+        { class: 'statline' },
+        el('span', { class: 'label', text: 'Streak' }),
+        this.streakEl,
+      ),
       el('div', { class: 'statline' }, el('span', { class: 'label', text: 'Seed' }), this.seedEl),
       this.noteEl,
     )
@@ -281,9 +313,24 @@ export class App {
       el(
         'div',
         { class: 'actions' },
-        el('button', { class: 'btn', type: 'button', onclick: () => this.act('undo') }, 'Undo', el('span', { class: 'key', text: 'U' })),
-        el('button', { class: 'btn', type: 'button', onclick: () => this.act('hint') }, 'Hint', el('span', { class: 'key', text: 'H' })),
-        el('button', { class: 'btn', type: 'button', onclick: () => this.act('restart') }, 'Restart', el('span', { class: 'key', text: 'R' })),
+        el(
+          'button',
+          { class: 'btn', type: 'button', onclick: () => this.act('undo') },
+          'Undo',
+          el('span', { class: 'key', text: 'U' }),
+        ),
+        el(
+          'button',
+          { class: 'btn', type: 'button', onclick: () => this.act('hint') },
+          'Hint',
+          el('span', { class: 'key', text: 'H' }),
+        ),
+        el(
+          'button',
+          { class: 'btn', type: 'button', onclick: () => this.act('restart') },
+          'Restart',
+          el('span', { class: 'key', text: 'R' }),
+        ),
       ),
     )
 

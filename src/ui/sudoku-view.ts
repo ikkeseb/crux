@@ -96,11 +96,22 @@ export class SudokuView implements PuzzleView {
     const pad = el('div', { class: 'keypad', role: 'group', 'aria-label': 'Number pad' })
     for (let d = 1; d <= 9; d++) {
       pad.append(
-        el('button', { class: 'keypad-btn', type: 'button', text: String(d), onclick: () => this.padDigit(d) }),
+        el('button', {
+          class: 'keypad-btn',
+          type: 'button',
+          text: String(d),
+          onclick: () => this.padDigit(d),
+        }),
       )
     }
     pad.append(
-      el('button', { class: 'keypad-btn erase', type: 'button', 'aria-label': 'Erase', text: '⌫', onclick: () => this.padDigit(0) }),
+      el('button', {
+        class: 'keypad-btn erase',
+        type: 'button',
+        'aria-label': 'Erase',
+        text: '⌫',
+        onclick: () => this.padDigit(0),
+      }),
     )
     this.pencilBtn = el('button', {
       class: this.pencilMode ? 'keypad-btn pencil on' : 'keypad-btn pencil',
@@ -330,7 +341,8 @@ export class SudokuView implements PuzzleView {
       }
       const br = Math.floor(y / 3) * 3
       const bc = Math.floor(x / 3) * 3
-      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) used |= 1 << this.values[br + i]![bc + j]!
+      for (let i = 0; i < 3; i++)
+        for (let j = 0; j < 3; j++) used |= 1 << this.values[br + i]![bc + j]!
       return FULL_MASK & ~used
     }
     const place = (x: number, y: number, d: number): void => {

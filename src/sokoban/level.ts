@@ -8,10 +8,8 @@ export const DIRS = [
   { dr: 0, dc: 1, ch: 'R' },
 ] as const
 
-export const idx = (level: { width: number }, r: number, c: number): number =>
-  r * level.width + c
-export const rowOf = (level: { width: number }, i: number): number =>
-  Math.floor(i / level.width)
+export const idx = (level: { width: number }, r: number, c: number): number => r * level.width + c
+export const rowOf = (level: { width: number }, i: number): number => Math.floor(i / level.width)
 export const colOf = (level: { width: number }, i: number): number => i % level.width
 
 export function inBounds(level: SokobanLevel, r: number, c: number): boolean {

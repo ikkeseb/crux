@@ -21,7 +21,9 @@ function dayIndex(date: string): number {
 }
 
 export function computeStreak(dates: string[], today: string): Streak {
-  const days = [...new Set(dates.map(dayIndex))].filter((n) => !Number.isNaN(n)).sort((a, b) => a - b)
+  const days = [...new Set(dates.map(dayIndex))]
+    .filter((n) => !Number.isNaN(n))
+    .sort((a, b) => a - b)
   if (days.length === 0) return { current: 0, longest: 0 }
 
   // Longest consecutive run.

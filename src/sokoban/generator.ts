@@ -66,7 +66,8 @@ function buildSolvedLevel(rng: Rng, preset: Preset): SokobanLevel {
     }
     // Sparse interior walls — fewer on each retry.
     const interior: number[] = []
-    for (let r = 1; r < height - 1; r++) for (let c = 1; c < width - 1; c++) interior.push(r * width + c)
+    for (let r = 1; r < height - 1; r++)
+      for (let c = 1; c < width - 1; c++) interior.push(r * width + c)
     const wallBudget = Math.max(0, Math.floor(interior.length * wallDensity) - attempt)
     const shuffledInterior = rng.shuffle(interior.slice())
     for (let i = 0; i < wallBudget; i++) walls[shuffledInterior[i]!] = true
@@ -165,8 +166,7 @@ function reverseScramble(
 }
 
 export function gradeSokoban(solution: SokobanSolution): SokobanGrade {
-  const score =
-    solution.stats.pushLength * 1.5 + Math.sqrt(solution.stats.expanded) * 1.2
+  const score = solution.stats.pushLength * 1.5 + Math.sqrt(solution.stats.expanded) * 1.2
   let difficulty: Difficulty
   if (score < 12) difficulty = 'easy'
   else if (score < 28) difficulty = 'medium'

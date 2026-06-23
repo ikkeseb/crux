@@ -131,7 +131,12 @@ export class NonogramView implements PuzzleView {
       onclick: () => this.setMode('cross'),
     }) as HTMLButtonElement
     this.crossBtn.append(el('span', { class: 'swatch cross' }), 'Cross')
-    return el('div', { class: 'painttoggle', role: 'group', 'aria-label': 'Paint mode' }, this.fillBtn, this.crossBtn)
+    return el(
+      'div',
+      { class: 'painttoggle', role: 'group', 'aria-label': 'Paint mode' },
+      this.fillBtn,
+      this.crossBtn,
+    )
   }
 
   private setMode(mode: 'fill' | 'cross'): void {

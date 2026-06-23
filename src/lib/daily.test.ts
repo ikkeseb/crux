@@ -14,9 +14,7 @@ describe('daily seed', () => {
     expect(dailySeed('nonogram', day)).toBe('crux:nonogram:2026-06-20')
     expect(dailySeed('nonogram', day)).toBe(dailySeed('nonogram', day))
     expect(dailySeed('nonogram', day)).not.toBe(dailySeed('sudoku', day))
-    expect(dailySeed('nonogram', day)).not.toBe(
-      dailySeed('nonogram', new Date(2026, 5, 21)),
-    )
+    expect(dailySeed('nonogram', day)).not.toBe(dailySeed('nonogram', new Date(2026, 5, 21)))
   })
 
   it('feeds a usable, deterministic Rng', () => {

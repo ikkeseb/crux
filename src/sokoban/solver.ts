@@ -1,11 +1,4 @@
-import {
-  DIRS,
-  computePushDist,
-  inBounds,
-  isSolved,
-  playerPath,
-  playerReach,
-} from './level'
+import { DIRS, computePushDist, inBounds, isSolved, playerPath, playerReach } from './level'
 import type { Push, SokobanLevel, SokobanSolution, SokobanSolveStats } from './types'
 
 /** A* over (boxes, normalized-player) states; minimises number of pushes. */
@@ -69,8 +62,7 @@ class MinHeap {
   }
 }
 
-const stateKey = (boxes: number[], normalized: number): string =>
-  `${boxes.join(',')}|${normalized}`
+const stateKey = (boxes: number[], normalized: number): string => `${boxes.join(',')}|${normalized}`
 
 export interface SokobanSolveOptions {
   /** Abort and report unsolved after this many state expansions (default 300k). */
@@ -81,10 +73,7 @@ function emptyStats(): SokobanSolveStats {
   return { expanded: 0, generated: 0, pushLength: 0, moveLength: 0 }
 }
 
-export function solveSokoban(
-  level: SokobanLevel,
-  opts: SokobanSolveOptions = {},
-): SokobanSolution {
+export function solveSokoban(level: SokobanLevel, opts: SokobanSolveOptions = {}): SokobanSolution {
   const maxExpansions = opts.maxExpansions ?? 300_000
   const W = level.width
   const pushDist = computePushDist(level)

@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  cluesFromLoop,
-  isSingleLoop,
-  loopSatisfiesClues,
-  solveSlitherlink,
-} from './solver'
+import { cluesFromLoop, isSingleLoop, loopSatisfiesClues, solveSlitherlink } from './solver'
 import type { Clue, Loop } from './types'
 
 /** Build an all-false loop of the given cell dimensions. */

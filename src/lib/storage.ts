@@ -143,7 +143,12 @@ export class CruxStore {
     ) {
       return null
     }
-    return { kind: s.kind as PuzzleKind, seed: s.seed, difficulty: s.difficulty as Difficulty, daily: s.daily }
+    return {
+      kind: s.kind as PuzzleKind,
+      seed: s.seed,
+      difficulty: s.difficulty as Difficulty,
+      daily: s.daily,
+    }
   }
 }
 

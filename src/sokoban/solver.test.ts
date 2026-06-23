@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  applyMove,
-  charToDir,
-  computePushDist,
-  isSolved,
-  parseLevel,
-  type DynState,
-} from './level'
+import { applyMove, charToDir, computePushDist, isSolved, parseLevel, type DynState } from './level'
 import { solveSokoban } from './solver'
 import type { SokobanLevel } from './types'
 
@@ -43,9 +36,7 @@ describe('solveSokoban', () => {
   })
 
   it('solves a two-box level and the move string actually solves it', () => {
-    const level = parseLevel(
-      ['#######', '#  @  #', '# $.$.#', '#######'].join('\n'),
-    )
+    const level = parseLevel(['#######', '#  @  #', '# $.$.#', '#######'].join('\n'))
     const sol = solveSokoban(level)
     expect(sol.solved).toBe(true)
     expect(sol.pushes.length).toBe(2)

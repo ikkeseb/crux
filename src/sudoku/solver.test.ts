@@ -34,8 +34,7 @@ const SOLUTION: SudokuGrid = [
   [3, 4, 5, 2, 8, 6, 1, 7, 9],
 ]
 
-const emptyBoard = (): SudokuGrid =>
-  Array.from({ length: 9 }, () => new Array<number>(9).fill(0))
+const emptyBoard = (): SudokuGrid => Array.from({ length: 9 }, () => new Array<number>(9).fill(0))
 
 describe('sudoku solver (DLX)', () => {
   it('solves the canonical puzzle to its known solution', () => {

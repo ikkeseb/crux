@@ -47,7 +47,8 @@ const RULES: Record<PuzzleKind, Rules> = {
   },
   sokoban: {
     title: 'Sokoban',
-    objective: 'Push every box onto a goal — the glowing dots. Boxes turn green once they land on one.',
+    objective:
+      'Push every box onto a goal — the glowing dots. Boxes turn green once they land on one.',
     how: [
       'You can only push, never pull, and only one box at a time. You cannot push a box into a wall or into another box.',
       'A box shoved into a corner (off a goal) is stuck for good, so think a move ahead before you commit.',
@@ -74,7 +75,8 @@ const RULES: Record<PuzzleKind, Rules> = {
       { keys: ['⇧', '↑↓←→'], sep: ['+'], desc: 'cross out an edge' },
       { keys: ['Click'], desc: 'toggle an edge — right-click to cross' },
     ],
-    touch: 'Tap an edge to add a line; switch the Line / Cross toggle to mark edges you have ruled out.',
+    touch:
+      'Tap an edge to add a line; switch the Line / Cross toggle to mark edges you have ruled out.',
   },
 }
 
@@ -121,14 +123,23 @@ export function openRules(kind: PuzzleKind): void {
     ...r.how.map((p) => el('p', { class: 'rule-para', text: p })),
     el('h3', { text: 'Controls' }),
     el('div', { class: 'rule-controls' }, ...r.controls.map((c) => kbdRow(c.keys, c.sep, c.desc))),
-    el('div', { class: 'rule-controls' }, ...GLOBAL_CONTROLS.map((c) => kbdRow(c.keys, undefined, c.desc))),
+    el(
+      'div',
+      { class: 'rule-controls' },
+      ...GLOBAL_CONTROLS.map((c) => kbdRow(c.keys, undefined, c.desc)),
+    ),
     el('p', { class: 'rule-touch' }, el('strong', { text: 'Touch: ' }), r.touch),
   )
 
   const dialog = el(
     'div',
     { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId },
-    el('div', { class: 'modal-head' }, el('h2', { id: titleId, text: `${r.title} — how to play` }), closeBtn),
+    el(
+      'div',
+      { class: 'modal-head' },
+      el('h2', { id: titleId, text: `${r.title} — how to play` }),
+      closeBtn,
+    ),
     body,
     el('div', { class: 'modal-foot' }, gotIt),
   )
@@ -144,7 +155,9 @@ export function openRules(kind: PuzzleKind): void {
   }
 
   const focusable = (): HTMLElement[] =>
-    Array.from(dialog.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])'))
+    Array.from(
+      dialog.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])'),
+    )
 
   const onKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {

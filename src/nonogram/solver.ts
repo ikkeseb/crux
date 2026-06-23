@@ -158,11 +158,7 @@ function freshStats(): NonogramSolveStats {
 }
 
 /** Run line propagation to a fixpoint. Returns false on contradiction. */
-function propagate(
-  grid: number[][],
-  clues: NonogramClues,
-  stats: NonogramSolveStats,
-): boolean {
+function propagate(grid: number[][], clues: NonogramClues, stats: NonogramSolveStats): boolean {
   const h = grid.length
   const w = grid[0]!.length
   let changed = true

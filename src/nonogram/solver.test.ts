@@ -1,13 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { EMPTY, FILLED, UNKNOWN } from './types'
-import {
-  cluesFromGrid,
-  gradeNonogram,
-  gridMatchesClues,
-  runsOf,
-  solve,
-  solveLine,
-} from './solver'
+import { cluesFromGrid, gradeNonogram, gridMatchesClues, runsOf, solve, solveLine } from './solver'
 
 const U = UNKNOWN
 const F = FILLED
@@ -159,7 +152,13 @@ describe('gradeNonogram', () => {
   })
 
   it('scales with board area', () => {
-    const stats = { propagationRounds: 4, lineSolves: 40, guesses: 0, maxDepth: 0, usedBacktracking: false }
+    const stats = {
+      propagationRounds: 4,
+      lineSolves: 40,
+      guesses: 0,
+      maxDepth: 0,
+      usedBacktracking: false,
+    }
     expect(gradeNonogram(stats, 25).score).toBeLessThan(gradeNonogram(stats, 225).score)
   })
 })
@@ -193,6 +192,14 @@ describe('solver robustness (review fixes)', () => {
     const clues = cluesFromGrid(solution)
     expect(gridMatchesClues(solution, clues)).toBe(true)
     // Only the top-left cell filled, the rest never touched (UNKNOWN) → not a win.
-    expect(gridMatchesClues([[F, U], [U, U]], clues)).toBe(false)
+    expect(
+      gridMatchesClues(
+        [
+          [F, U],
+          [U, U],
+        ],
+        clues,
+      ),
+    ).toBe(false)
   })
 })

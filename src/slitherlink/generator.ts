@@ -1,11 +1,6 @@
 import type { Difficulty } from '../lib/types'
 import { Rng } from '../lib/rng'
-import {
-  cluesFromLoop,
-  gradeSlitherlink,
-  isSingleLoop,
-  solveSlitherlink,
-} from './solver'
+import { cluesFromLoop, gradeSlitherlink, isSingleLoop, solveSlitherlink } from './solver'
 import type { Clue, Loop, SlitherlinkPuzzle } from './types'
 
 /** Board size per requested difficulty (bigger = more loop to trace). */

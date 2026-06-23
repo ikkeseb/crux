@@ -1,26 +1,19 @@
 import type { Difficulty } from '../lib/types'
 import { Dlx } from './dlx'
 import { solveByTechniques, TECHNIQUE_TIER } from './techniques'
-import type {
-  SudokuGrade,
-  SudokuGrid,
-  SudokuLogicResult,
-  SudokuSolveResult,
-} from './types'
+import type { SudokuGrade, SudokuGrid, SudokuLogicResult, SudokuSolveResult } from './types'
 
 export const N = 9
 const FULL_MASK = 0x3fe // bits 1..9 set
 
 /* ---- exact-cover encoding ------------------------------------------------ */
 
-const boxOf = (r: number, c: number): number =>
-  Math.floor(r / 3) * 3 + Math.floor(c / 3)
+const boxOf = (r: number, c: number): number => Math.floor(r / 3) * 3 + Math.floor(c / 3)
 
 const cellCol = (r: number, c: number): number => r * 9 + c
 const rowCol = (r: number, d: number): number => 81 + r * 9 + (d - 1)
 const colCol = (c: number, d: number): number => 162 + c * 9 + (d - 1)
-const boxCol = (r: number, c: number, d: number): number =>
-  243 + boxOf(r, c) * 9 + (d - 1)
+const boxCol = (r: number, c: number, d: number): number => 243 + boxOf(r, c) * 9 + (d - 1)
 
 const rowIdOf = (r: number, c: number, d: number): number => (r * 9 + c) * 9 + (d - 1)
 const colsFor = (r: number, c: number, d: number): number[] => [
@@ -187,8 +180,10 @@ function countEmpty(grid: SudokuGrid): number {
 
 const unitCells = (() => {
   const units: Array<Array<[number, number]>> = []
-  for (let r = 0; r < N; r++) units.push(Array.from({ length: N }, (_, c) => [r, c] as [number, number]))
-  for (let c = 0; c < N; c++) units.push(Array.from({ length: N }, (_, r) => [r, c] as [number, number]))
+  for (let r = 0; r < N; r++)
+    units.push(Array.from({ length: N }, (_, c) => [r, c] as [number, number]))
+  for (let c = 0; c < N; c++)
+    units.push(Array.from({ length: N }, (_, r) => [r, c] as [number, number]))
   for (let b = 0; b < 9; b++) {
     const br = Math.floor(b / 3) * 3
     const bc = (b % 3) * 3

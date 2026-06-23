@@ -122,9 +122,27 @@ describe('CruxStore — daily dates for streaks', () => {
   })
 
   test('daily dates are deduplicated across kinds and repeats', () => {
-    store.recordCompletion({ kind: 'sudoku', difficulty: 'easy', timeMs: 1, daily: true, date: '2026-06-21' })
-    store.recordCompletion({ kind: 'sokoban', difficulty: 'easy', timeMs: 1, daily: true, date: '2026-06-21' })
-    store.recordCompletion({ kind: 'nonogram', difficulty: 'easy', timeMs: 1, daily: true, date: '2026-06-20' })
+    store.recordCompletion({
+      kind: 'sudoku',
+      difficulty: 'easy',
+      timeMs: 1,
+      daily: true,
+      date: '2026-06-21',
+    })
+    store.recordCompletion({
+      kind: 'sokoban',
+      difficulty: 'easy',
+      timeMs: 1,
+      daily: true,
+      date: '2026-06-21',
+    })
+    store.recordCompletion({
+      kind: 'nonogram',
+      difficulty: 'easy',
+      timeMs: 1,
+      daily: true,
+      date: '2026-06-20',
+    })
     expect(store.dailyDates().sort()).toEqual(['2026-06-20', '2026-06-21'])
   })
 
@@ -149,7 +167,12 @@ describe('CruxStore — session pointer', () => {
   })
 
   test('saveSession then loadSession round-trips the pointer', () => {
-    const session = { kind: 'sudoku' as const, seed: 'abc', difficulty: 'hard' as const, daily: false }
+    const session = {
+      kind: 'sudoku' as const,
+      seed: 'abc',
+      difficulty: 'hard' as const,
+      daily: false,
+    }
     store.saveSession(session)
     expect(store.loadSession()).toEqual(session)
   })
@@ -157,7 +180,12 @@ describe('CruxStore — session pointer', () => {
   test('saveSession overwrites the previous pointer', () => {
     store.saveSession({ kind: 'sudoku', seed: 'abc', difficulty: 'easy', daily: false })
     store.saveSession({ kind: 'sokoban', seed: 'xyz', difficulty: 'expert', daily: true })
-    expect(store.loadSession()).toEqual({ kind: 'sokoban', seed: 'xyz', difficulty: 'expert', daily: true })
+    expect(store.loadSession()).toEqual({
+      kind: 'sokoban',
+      seed: 'xyz',
+      difficulty: 'expert',
+      daily: true,
+    })
   })
 
   test('a corrupt session blob loads as null', () => {

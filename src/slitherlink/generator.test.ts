@@ -4,7 +4,10 @@ import { generateSlitherlink } from './generator'
 import { cluesFromLoop, isSingleLoop, loopSatisfiesClues, solveSlitherlink } from './solver'
 import type { SlitherlinkPuzzle } from './types'
 
-function eachClue(p: SlitherlinkPuzzle, fn: (k: number | null, r: number, c: number) => void): void {
+function eachClue(
+  p: SlitherlinkPuzzle,
+  fn: (k: number | null, r: number, c: number) => void,
+): void {
   for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) fn(p.clues[r]![c]!, r, c)
 }
 
@@ -78,7 +81,8 @@ describe('generateSlitherlink', () => {
     const avg = (difficulty: 'easy' | 'hard'): number => {
       let sum = 0
       const n = 4
-      for (let s = 0; s < n; s++) sum += generateSlitherlink(`avg-${difficulty}-${s}`, { difficulty }).score
+      for (let s = 0; s < n; s++)
+        sum += generateSlitherlink(`avg-${difficulty}-${s}`, { difficulty }).score
       return sum / n
     }
     expect(avg('hard')).toBeGreaterThan(avg('easy'))

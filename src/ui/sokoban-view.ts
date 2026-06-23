@@ -228,7 +228,12 @@ export class SokobanView implements PuzzleView {
   }
 
   serialize(): unknown {
-    return { boxes: this.state.boxes, player: this.state.player, moves: this.moves, pushes: this.pushes }
+    return {
+      boxes: this.state.boxes,
+      player: this.state.player,
+      moves: this.moves,
+      pushes: this.pushes,
+    }
   }
 
   restore(data: unknown): boolean {

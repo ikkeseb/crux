@@ -52,6 +52,9 @@ describe('computeStreak', () => {
   })
 
   test('all-malformed input is a zero streak', () => {
-    expect(computeStreak(['nope', 'x', '2026/06/21'], '2026-06-21')).toEqual({ current: 0, longest: 0 })
+    expect(computeStreak(['nope', 'x', '2026/06/21'], '2026-06-21')).toEqual({
+      current: 0,
+      longest: 0,
+    })
   })
 })

@@ -2,7 +2,10 @@
  *  dynamic value is ever parsed as HTML. */
 
 type Child = Node | string | null | undefined | false
-type Attrs = Record<string, string | number | boolean | EventListenerOrEventListenerObject | undefined>
+type Attrs = Record<
+  string,
+  string | number | boolean | EventListenerOrEventListenerObject | undefined
+>
 
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,

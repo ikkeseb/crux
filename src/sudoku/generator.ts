@@ -1,12 +1,6 @@
 import type { Difficulty } from '../lib/types'
 import { Rng } from '../lib/rng'
-import {
-  buildRandomFullGrid,
-  cloneGrid,
-  countGivens,
-  countSolutions,
-  gradeSudoku,
-} from './solver'
+import { buildRandomFullGrid, cloneGrid, countGivens, countSolutions, gradeSudoku } from './solver'
 import type { SudokuGrid, SudokuPuzzle } from './types'
 
 /**
@@ -79,10 +73,7 @@ function digOne(seed: string, target: number): SudokuPuzzle {
  * return the first whose *graded* difficulty matches, falling back to the closest.
  * `puzzle.difficulty` is always the honest grade of the returned board.
  */
-export function generateSudoku(
-  seed: string | number,
-  opts: SudokuGenOptions = {},
-): SudokuPuzzle {
+export function generateSudoku(seed: string | number, opts: SudokuGenOptions = {}): SudokuPuzzle {
   const requested = opts.difficulty
   const target = opts.targetGivens ?? TARGET_GIVENS[requested ?? 'medium']
   const maxAttempts = opts.maxAttempts ?? 60

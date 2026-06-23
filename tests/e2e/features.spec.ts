@@ -110,7 +110,10 @@ test.describe('touch', () => {
     await openTab(page, 'Nonogram')
     await expect(page.locator('.painttoggle')).toBeVisible()
     await page.getByRole('button', { name: 'Cross' }).click()
-    await expect(page.getByRole('button', { name: 'Cross' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: 'Cross' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 
   test('slitherlink line/cross toggle is available', async ({ page }) => {
@@ -119,6 +122,9 @@ test.describe('touch', () => {
     await expect(page.locator('.board.slither')).toBeVisible()
     await expect(page.locator('.painttoggle')).toBeVisible()
     await page.getByRole('button', { name: 'Cross' }).click()
-    await expect(page.getByRole('button', { name: 'Cross' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: 'Cross' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 })
