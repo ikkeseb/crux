@@ -1,0 +1,14 @@
+# Normalize all text files to LF in the repo and working tree.
+# Deterministic line endings across platforms — matches Prettier's `lf` default
+# and keeps `pnpm format:check` green regardless of core.autocrlf.
+* text=auto eol=lf
+
+# Binary assets — never touch their bytes.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
