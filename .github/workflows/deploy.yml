@@ -32,7 +32,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Same gate as local commits: typecheck (via build's tsc) + tests + build.
+      # Same gate as local commits (`pnpm validate`): lint, format, types
+      # (via build's tsc), tests, build. Kept as separate steps for per-step
+      # status in the Actions UI.
+      - run: pnpm lint
+      - run: pnpm format:check
       - run: pnpm test
       - run: pnpm build
 
