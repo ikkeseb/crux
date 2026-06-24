@@ -34,6 +34,25 @@
   - Should match actual Node.js version in use
   - Consider Node.js 20 LTS or 22 LTS
 
+## CI / GitHub Actions (low urgency)
+
+The Pages workflow pins actions to SHAs whose bundled JS runtime is Node 20,
+which GitHub is deprecating on runners (they currently force-run on Node 24, so
+builds are unaffected for now). This is the _action_ runtime, **not** the
+project's Node — CI already builds on Node 22 (`setup-node` `node-version: 22`).
+
+Dependabot already has open branches for the bumps (each targets a Node 24
+runtime):
+
+- `actions/checkout` v4 → 7.0.0
+- `actions/setup-node` v4 → 6.4.0
+- `actions/upload-pages-artifact` v3 → 5.0.0
+- `actions/deploy-pages` v4 → 5.0.0
+- `pnpm/action-setup` v4 → 6.0.9
+
+Action: merge the Dependabot PRs (verify CI stays green on each). No code
+changes expected. Safe to defer until GitHub announces a Node 20 removal date.
+
 ## Recommendation
 
 These are **major version** upgrades that should be done separately:
